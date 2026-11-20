@@ -7,7 +7,7 @@
 | 状态 | 含义 | 下一步 |
 |---|---|---|
 | `READY` | NoteExpress 进程拥有已观测到的监听端口，且 `/mcp` 返回了包含必需工具的有效 `tools/list`。 | 另行检查 AI 客户端实际注册的工具。这不能证明所有 `tools/call` 都能成功。 |
-| `NO_PROCESS` | 未发现 NoteExpress 进程。 | 如果用户想使用 NoteExpress，请让用户自行打开程序。不要启动未知可执行文件。 |
+| `NO_PROCESS` | 未发现 NoteExpress 进程。 | 先确认 NoteExpress 是否已安装。若尚未安装，请到 [NoteExpress 官网](https://www.inoteexpress.com/) 获取适用于该 Windows 主机且包含 MCP 服务的版本；安装后由用户启动程序。不要启动未知可执行文件。 |
 | `PROCESS_RUNNING_PORT_CLOSED` | NoteExpress 正在运行，但预期端点未接受 TCP 连接。 | 检查 NoteExpress 中 MCP 服务是否已启用或仍在启动。启动后再次检查；不要更改端口。 |
 | `PORT_CONFLICT` | 监听证据显示端口属于非 NoteExpress 进程，或归属存在冲突。 | 报告占用进程；不要结束进程，也不要仅凭 HTTP 请求成功就认定端口归属正确。 |
 | `PORT_OWNER_UNKNOWN` | 无法确认监听端口的归属。 | MCP 响应本身可能表明它是 MCP 服务，但进程归属仍未核实。 |

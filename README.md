@@ -21,6 +21,8 @@
 
 NoteExpress 内置 MCP 服务运行在 Windows 主机的 `127.0.0.1:49527`。健康检查脚本需要在运行 NoteExpress 的 Windows 主机上使用 Windows PowerShell 5.1 或 PowerShell 7。在其他操作系统上仍可使用本 Skill 的通用操作指引，但脚本无法检查 Windows 进程表。请只通过可信的主机命令，或确实在该 Windows 电脑上执行命令的安全桥接运行脚本。
 
+如果安装 Skill 时本机未检测到 NoteExpress，安装器会提示用户前往 [NoteExpress 官网](https://www.inoteexpress.com/) 下载适用于该 Windows 电脑且包含 MCP 服务的版本。安装并启动 NoteExpress 后，还需确认服务已启用，并在 AI 客户端单独注册 MCP。
+
 本机健康检查只验证一次 `tools/list` 请求。它不会读取 AI 客户端的 MCP 注册表，不会让当前会话自动出现全部 30 个工具，也不能证明每个工具都能成功调用。脚本会输出 `client_tool_registration: NOT_CHECKED`，以明确区分这两项检查。
 
 ## 安装 Skill

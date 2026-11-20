@@ -15,6 +15,7 @@ compatibility: NoteExpress MCP 在 Windows 上运行，地址为 127.0.0.1:49527
 1. 确认 AI Agent 实际运行在哪里。`127.0.0.1` 指 Agent 所在的机器或容器；远程 Agent 无法通过自己的回环地址连接用户的 Windows 电脑。
 2. 如果 Agent 能在运行 NoteExpress 的 Windows 主机上执行命令，从本 Skill 目录运行 `scripts/check-ne-mcp.ps1 -Json`。连接错误后再检查一次；不要在每次调用 NoteExpress 工具前都启动 PowerShell。
 3. 分别解读每项检查。`READY` 表示监听端口归属已确认是 NoteExpress，且服务返回了包含必需工具的有效 `tools/list` 响应；它不能证明当前 AI 客户端已注册这些工具，也不能证明所有工具调用都会成功。
+   如果状态为 `NO_PROCESS`，先确认运行 MCP 服务的 Windows 主机是否安装了 NoteExpress。若尚未安装，请到 [NoteExpress 官网](https://www.inoteexpress.com/) 选择适用于该电脑且包含 MCP 服务的版本；安装并启动后再检查连接。
 4. 检查当前客户端实际提供的工具。如果没有 `noteexpress_*` 工具，说明 MCP 尚未注册，并引导用户查看 `references/mcp-connection.md`。不要自动修改客户端配置。
 5. 如果 Agent 无法安全连接 Windows 主机，说明连接边界。不要把远程 Agent 的本地 `127.0.0.1` 当成用户的 Windows 电脑，也不要将端口暴露到公共互联网。
 
