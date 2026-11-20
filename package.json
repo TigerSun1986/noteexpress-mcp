@@ -1,0 +1,36 @@
+{
+  "name": "noteexpress-mcp-skill",
+  "version": "1.0.0",
+  "description": "通过 npx 将 NoteExpress MCP Skill 安装到当前 AI Agent",
+  "type": "commonjs",
+  "bin": {
+    "noteexpress-mcp-skill": "./bin/install-skill.cjs"
+  },
+  "files": [
+    "bin/install-skill.cjs",
+    "SKILL.md",
+    "README.md",
+    "install.ps1",
+    "uninstall.ps1",
+    "scripts",
+    "references",
+    "examples"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TigerSun1986/noteexpress-mcp.git"
+  },
+  "homepage": "https://github.com/TigerSun1986/noteexpress-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/TigerSun1986/noteexpress-mcp/issues"
+  },
+  "keywords": [
+    "noteexpress",
+    "mcp",
+    "agent-skill",
+    "skills"
+  ]
+}

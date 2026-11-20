@@ -27,3 +27,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\build\New-ReleasePackage.p
 默认产物为 `dist/noteexpress-mcp-v1.0.0.zip`。`dist/` 已加入 `.gitignore`。脚本仅在目标 ZIP 尚不存在时创建；重新打同一版本前，请先移走旧产物或改用新版本号。将此 ZIP 作为 GitHub Release 的下载资产提供给客户；GitHub 页面上的 Source code 压缩包对应整个源码仓库，仍会包含测试目录。
 
 客户 ZIP 保留安装器所需的 `README.md`、`SKILL.md`、`install.ps1`、`uninstall.ps1`、`scripts/`、`references/` 和 `examples/`。其中的 `install.ps1` 会把 Skill 文件安装到客户端，不会安装 `tests/` 或维护者工具。
+
+## 发布 npm npx 安装器
+
+`package.json` 将包入口限定为 `bin/install-skill.cjs`，并通过 `files` 白名单包含安装器和 Skill 运行文件，不包含 `tests/`、`build/` 或本维护者文档。发布前需确认 npm 包名可用且账号有发布权限，确定许可证，并检查打包清单：
+
+```powershell
+npm pack --dry-run
+```
+
+当前 `package.json` 中的 `noteexpress-mcp-skill` 是候选包名；确定最终名称后再发布。发布到 npm 前，应先通过 `npm login` 登录有权发布该名称的账号，并按版本规则更新 `package.json`。

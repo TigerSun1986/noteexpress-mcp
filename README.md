@@ -58,6 +58,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1 -TargetDirec
 
 正式发布时，请从 GitHub Releases 下载 `noteexpress-mcp-v版本号.zip`。这是按安装所需文件生成的精简包，不含测试目录和维护者构建文件。GitHub 页面提供的 Source code 压缩包对应完整源码仓库，包含维护者文件，不作为客户安装包。
 
+## 使用 npx 安装 Skill
+
+npm 包发布后，用户可在当前 Agent 的终端中运行：
+
+```powershell
+npx -y noteexpress-mcp-skill
+```
+
+命令会把 Skill 文件复制到 Agent 可发现的用户级目录。Claude Code shell 会话会自动使用 `~/.claude/skills`；其他默认安装到 `~/.agents/skills`，供 Codex、Cursor、OpenCode 和 Pi 等客户端使用。也可显式指定客户端或目录：
+
+```powershell
+npx -y noteexpress-mcp-skill --client claude-code
+npx -y noteexpress-mcp-skill --client necode
+npx -y noteexpress-mcp-skill --target 'D:\AgentSkills'
+```
+
+目标目录已存在时，命令会停止以保护已有文件；确认需要更新后添加 `--force`。该命令只安装 Skill，不会注册或修改客户端的 MCP 配置。
+
 ## 单独注册 NoteExpress MCP
 
 安装或加载 Skill 并不会配置 MCP 服务。请根据 Agent 运行的客户端和环境选择对应配置方式。检查并自行应用配置；安装器不会修改它。
