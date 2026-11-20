@@ -12,11 +12,10 @@
 
 - `SKILL.md` — 简明的路由、连接和安全指引。
 - `scripts/check-ne-mcp.ps1` — 适用于 PowerShell 5.1 的主机诊断脚本；根据状态返回对应退出码，并支持 `-Json`。
-- `scripts/NeMcpGuard.psm1` — 健康检查所使用、可测试的实现模块。
+- `scripts/NeMcpGuard.psm1` — 健康检查所使用的实现模块。
 - `scripts/export-tool-schema.ps1` — 抓取原始分页 `tools/list` 响应和解析后的 schema。可选的 `-ProbeVersion` 只会在 `noteexpress_version` 没有必需参数时调用该工具。
 - `references/` — 按主题组织的工作流、限制、客户端设置、安全规则和故障排查说明。
 - `examples/mcp-config.json` — 最简的 Cursor/Pi 风格 `mcpServers` URL 配置示例。Claude Code 的 JSON 配置还需要设置 `"type": "http"`；OpenCode 则使用带 `type: "remote"` 的 `mcp.servers`。
-- `tests/` — 无依赖的 Guard、工作流、包、安装器和实时协议测试。
 
 ## 要求与限制
 
@@ -52,6 +51,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1 -TargetDirec
 ```
 
 卸载器会先验证 Skill 的 frontmatter，再删除对应 Skill 目录。它不会修改任何客户端 MCP 配置。卸载器支持 `-WhatIf`，并会在删除前询问确认。
+
+## 客户下载
+
+正式发布时，请从 GitHub Releases 下载 `noteexpress-mcp-v版本号.zip`。这是按安装所需文件生成的精简包，不含测试目录和维护者构建文件。GitHub 页面提供的 Source code 压缩包对应完整源码仓库，包含维护者文件，不作为客户安装包。
 
 ## 单独注册 NoteExpress MCP
 
@@ -158,18 +161,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\export-tool-schema
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\export-tool-schema.ps1 -ProbeVersion
 ```
 
-这个可选调用只测试 `noteexpress_version`，不代表其他工具调用成功。仓库中的响应明确报告 `mcp_protocol: 2025-06-18`；协议兼容性测试结果见 `references/mcp-connection.md`。
-
-## 运行测试
-
-模拟、工作流、包和安装器测试需要 PowerShell 5.1 或 PowerShell 7，不依赖 Pester 或 NoteExpress。`Test-Protocol.ps1` 还要求本机 NoteExpress MCP 端点正在运行：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-Guard.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-Workflows.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-Install.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-Package.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-Protocol.ps1
-```
-
-Guard 测试注入进程/套接字样例和模拟 JSON-RPC 服务。工作流测试检查文档所描述的行为约定；安装测试使用隔离的临时目录。`Test-Protocol.ps1` 是实时只读兼容性测试，要求 NoteExpress 在这台 Windows 主机上运行；它只发送 initialize、tools/list、noteexpress_version 和 ping 请求，不会创建或修改文献库中的记录。
+这个可选操作只调用 `noteexpress_version`，不代表其他工具调用成功。仓库中的响应明确报告 `mcp_protocol: 2025-06-18`；兼容性探测结果见 `references/mcp-connection.md`。

@@ -58,7 +58,7 @@ JSON 输出会分别报告进程和路径、监听查询、TCP 连接、端口�
 
 ### Ping 探测
 
-最初的任务证据只确认了 `tools/list`；之后的实时检查才验证了 `noteexpress_version` 和 `noteexpress_ping` 的 `tools/call`。为保持默认检查精简，Guard 默认跳过 ping。只有当前工具列表中公布了 ping，且其 schema 没有必需参数时，`-ProbePing` 才会调用它。`tests/Test-Protocol.ps1` 会对本机端点重复标准 initialize 流程和这两项只读调用。
+最初的任务证据只确认了 `tools/list`；之后的实时检查才验证了 `noteexpress_version` 和 `noteexpress_ping` 的 `tools/call`。为保持默认检查精简，Guard 默认跳过 ping。只有当前工具列表中公布了 ping，且其 schema 没有必需参数时，`-ProbePing` 才会调用它。对本机端点的只读兼容性探测还验证了标准 initialize 流程和这两项调用。
 
 ## 服务、客户端与 Skill 状态
 
