@@ -1,31 +1,31 @@
-# Mutation and destructive-operation safety
+# 修改与破坏性操作安全规则
 
-Use the current client-exposed tool schema and description for every operation. A tool name alone does not establish its arguments, defaults, or side effects.
+每项操作都应使用当前客户端提供的工具 schema 和描述。仅凭工具名称，无法确定参数、默认值或副作用。
 
-## General rules
+## 通用规则
 
-- Treat a user's specific request to create or update records as authorization for that requested change, after resolving exact targets and validating fields.
-- Prefer search/read first to establish the record set. When available, use `dry_run` before a bulk or otherwise high-impact operation and show the returned plan.
-- Do not broaden the target set, change the active library, invent IDs, or retry an ambiguous timed-out mutation until checking whether it already took effect.
-- Report exactly what the server confirms, including partial results, blocked records, and errors.
+- 用户明确要求创建或更新记录，在确认具体目标并验证字段后，即表示授权执行该项更改。
+- 优先先检索或读取，以确认记录范围。工具支持时，在批量或影响较大的操作前使用 `dry_run`，并向用户展示返回的操作计划。
+- 不要扩大目标范围、切换活动文献库、臆造 ID，也不要在检查是否已生效前重试结果不明的超时修改。
+- 准确报告服务端确认的结果，包括部分成功、被阻止的记录和错误。
 
-## Ask for confirmation before these actions
+## 以下操作执行前须确认
 
-Before executing, provide the exact target and expected effect and obtain explicit confirmation for:
+执行前，应向用户说明确切目标和预期影响，并取得明确确认：
 
-- `noteexpress_delete_refs` or `noteexpress_delete_category`;
-- actual duplicate cleanup through `noteexpress_dedupe_refs`;
-- overwriting an existing attachment with `noteexpress_attach_file`;
-- any bulk operation whose target set or effect is unclear.
+- `noteexpress_delete_refs` 或 `noteexpress_delete_category`；
+- 通过 `noteexpress_dedupe_refs` 执行实际去重清理；
+- 使用 `noteexpress_attach_file` 覆盖已有附件；
+- 目标范围或影响不明确的批量操作。
 
-For deduplication, run `dry_run` first when supported. Show duplicate groups and the proposed keep policy. The supplied description of `most_attachments` selects a record with more attachments; it does not establish that metadata or attachments from another record will be merged. Confirm the current server description.
+去重时，工具支持的话先运行 `dry_run`，展示重复组和拟采用的保留规则。当前提供的 `most_attachments` 描述表示保留附件较多的记录；但不能据此断定会合并其他记录的元数据或附件。操作前请确认当前服务端描述。
 
-If the current schema does not offer a dry-run for a destructive operation, describe that limitation and get confirmation for the exact operation before proceeding. A generic earlier request such as “clean things up” does not confirm a specific deletion set.
+如果当前 schema 不支持破坏性操作的 dry-run，应说明这一限制，并在执行前针对准确操作取得用户确认。用户之前笼统提出“整理一下”，不等于确认删除某一组具体记录。
 
-## Never perform these actions automatically
+## 不得自动执行的操作
 
-- Do not terminate NoteExpress or another process using port 49527.
-- Do not change the NoteExpress port, launch an unknown executable, or reinstall NoteExpress.
-- Do not expose the loopback MCP endpoint to the public Internet.
-- Do not silently change the active library or claim a local path exists on the Windows server.
-- Do not represent a plain-text citation as a dynamic Word citation field.
+- 不得终止 NoteExpress，也不得终止占用端口 49527 的其他进程。
+- 不得更改 NoteExpress 端口、启动未知可执行文件或重新安装 NoteExpress。
+- 不得将回环 MCP 端点暴露到公共互联网。
+- 不得擅自切换活动文献库，也不得声称某个本地路径存在于 Windows 服务端。
+- 不得把纯文本引文说成 Word 动态引文域。

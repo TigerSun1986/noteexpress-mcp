@@ -1,27 +1,27 @@
-# PDF reading and attachment management
+# PDF 阅读与附件管理
 
-Always inspect the current tool schemas first. The limits below come from the task-provided NoteExpress schema description; recheck live descriptions because a later NoteExpress version may differ.
+每次操作前先查看当前工具 schema。下列限制来自任务提供的 NoteExpress schema 描述；由于后续版本可能不同，实际操作前应重新核对实时描述。
 
-## Read a PDF attached to a reference
+## 阅读文献附件中的 PDF
 
-1. Resolve the reference from a real search/list result or a user-provided identifier confirmed in the target library.
-2. Use `noteexpress_get_ref` or `noteexpress_list_attaches` and inspect the returned `attachments[]` records.
-3. Select an entry whose live metadata identifies it as a file/PDF attachment. Pass that entry's `attachments[].id` as the PDF tool's attachment identifier, if that is what the live schema requests.
-4. Call `noteexpress_extract_pdf_text` with the real reference UID and attachment ID required by its schema. Never substitute the database integer `id`, a note ID, or an invented path.
-5. Summarize only text actually returned. Preserve extraction errors, page errors, truncation, and uncertainty in the answer.
+1. 通过真实的检索/列表结果解析目标文献，或在目标文献库中确认用户提供的标识符。
+2. 使用 `noteexpress_get_ref` 或 `noteexpress_list_attaches`，查看返回的 `attachments[]` 记录。
+3. 选择实时元数据标记为文件或 PDF 附件的条目。如果实时 schema 要求传入附件标识符，就使用该条目的 `attachments[].id`。
+4. 按 schema 要求，将真实文献 UID 和附件 ID 传给 `noteexpress_extract_pdf_text`。不要用数据库整数 `id`、笔记 ID 或臆造路径替代。
+5. 只总结实际返回的文本。在答复中保留提取错误、页错误、截断信息和不确定性。
 
-The reference `uid` is a GUID. It is different from the database integer `id` and from the attachment ID. Do not guess a local file path: the MCP server runs on the NoteExpress Windows host and resolves its own files.
+文献 `uid` 是 GUID，与数据库整数 `id` 和附件 ID 均不同。不要猜测本地文件路径：MCP 服务运行在 NoteExpress 所在的 Windows 主机上，由该服务解析自己的文件。
 
-The supplied schema description states a 64 MiB PDF limit, a 2,000,000-character extraction hard limit, and a maximum of two PDF extraction calls in one HTTP JSON-RPC batch. Verify these constraints in the current schema/description before relying on them. Server-side PDF parsing is established; OCR support is not. For a scan, empty extraction, or partial failure, say that text was unavailable and ask for an OCR-capable source if needed. Never fill in missing document content from its title or abstract.
+任务提供的 schema 描述指出：PDF 大小上限为 64 MiB，文本提取硬上限为 2,000,000 个字符，并且一次 HTTP JSON-RPC 批处理中最多执行两次 PDF 提取调用。依赖这些限制前，请先从当前 schema 或描述中再次核实。已确认服务端能解析 PDF，但没有证据表明支持 OCR。遇到扫描件、提取结果为空或部分失败时，应说明无法取得文本；如有需要，请用户提供可进行 OCR 的来源。不要根据标题或摘要补写缺失的文档内容。
 
-## Attach a file
+## 添加附件
 
-- Use `noteexpress_attach_file` only after resolving the target reference and confirming the source path exists on the Windows computer running NoteExpress.
-- The task-provided schema uses the argument name `uuid` for the reference, not `uid`. Follow the live schema and do not transpose IDs between tools.
-- Check the live meaning of `on_duplicate`. The supplied values are `use_existing`, `overwrite`, and `rename`; do not assume their exact outcome without the current description.
-- `overwrite` can destroy existing attachment content. Confirm the exact reference, attachment, and replacement with the user before invoking it.
-- A path available to a remote agent may not exist on the Windows NoteExpress host. Do not silently substitute a similarly named local file.
+- 只有在确认目标文献，且确认源文件路径在运行 NoteExpress 的 Windows 电脑上真实存在后，才使用 `noteexpress_attach_file`。
+- 任务提供的 schema 使用 `uuid` 作为文献标识参数，而不是 `uid`。遵循实时 schema，不要混用不同工具的 ID。
+- 查看实时描述对 `on_duplicate` 的说明。已提供的值为 `use_existing`、`overwrite` 和 `rename`；不要在未查看当前描述前假定它们的具体效果。
+- `overwrite` 可能破坏已有附件内容。调用前要和用户确认具体文献、附件和替换文件。
+- 远程 Agent 可访问的路径不一定存在于运行 NoteExpress 的 Windows 主机上。不要擅自换成名称相似的本地文件。
 
-## List or remove attachments
+## 列出或移除附件
 
-Use `noteexpress_list_attaches` or the attachment records returned by `noteexpress_get_ref` to identify real attachment IDs. Before `noteexpress_remove_attach`, verify both the target reference UID and the exact attachment ID from that reference, then describe the removal. Treat removal as destructive and ask for confirmation unless the user has already clearly confirmed that exact removal.
+使用 `noteexpress_list_attaches`，或查看 `noteexpress_get_ref` 返回的附件记录，取得真实附件 ID。调用 `noteexpress_remove_attach` 前，核实目标文献 UID 和该文献下准确的附件 ID，并向用户说明删除对象。移除附件属于破坏性操作；除非用户已明确确认要移除这一项，否则先征求确认。
