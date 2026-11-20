@@ -1,64 +1,68 @@
 #requires -Version 5.1
-# Install ne-mcp-guard into the local NeCode skills directory (fixed path, no arguments).
-# Usage: powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
-# Exit codes: 0 = installed (or already installed); 1 = failed.
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
+param(
+    [ValidateSet('Standard', 'Codex', 'Cursor', 'ClaudeCode', 'OpenCode', 'Pi', 'NeCode')]
+    [string]$Client = 'Standard',
+    [string]$TargetDirectory,
+    [switch]$Force
+)
 
 $ErrorActionPreference = 'Stop'
+$SourceDirectory = $PSScriptRoot
+$SkillDirectoryName = 'noteexpress-mcp'
+$SkillFrontmatterName = 'noteexpress-mcp'
 
-if (-not $env:APPDATA) {
-    Write-Output 'ERROR=APPDATA environment variable is missing'
-    exit 1
+if ($Client -eq 'NeCode') {
+    # Preserve the former NeCode folder and skill ID even with a custom skills root.
+    $SkillDirectoryName = 'ne-mcp-guard'
+    $SkillFrontmatterName = 'ne-mcp-guard'
 }
 
-$SkillName = 'ne-mcp-guard'
-$Source    = $PSScriptRoot
-$Dest      = Join-Path $env:APPDATA "ai.necode.desktop\xdg-config\necode-desktop\skills\$SkillName"
-
-foreach ($rel in @('SKILL.md', 'scripts\check-ne-mcp.ps1')) {
-    if (-not (Test-Path -LiteralPath (Join-Path $Source $rel))) {
-        Write-Output "ERROR=package incomplete, missing $rel"
-        exit 1
-    }
-}
-
-function Get-CanonicalPath([string]$Path) {
-    if (Test-Path -LiteralPath $Path) {
-        return (Get-Item -LiteralPath $Path).FullName.TrimEnd('\')
-    }
-    return [System.IO.Path]::GetFullPath($Path).TrimEnd('\')
-}
-
-# Already running from the installed location: copying onto itself locks files.
-if ([string]::Equals((Get-CanonicalPath $Source), (Get-CanonicalPath $Dest), 'OrdinalIgnoreCase')) {
-    Write-Output "SKIP=already installed at $Dest"
-    exit 0
-}
-
-New-Item -ItemType Directory -Force -Path $Dest | Out-Null
-$items = @(Get-ChildItem -LiteralPath $Source -Force)
-
-$copied = $false
-for ($attempt = 1; $attempt -le 3; $attempt++) {
-    try {
-        $items | Copy-Item -Destination $Dest -Recurse -Force -ErrorAction Stop
-        $copied = $true
-        break
-    }
-    catch {
-        if ($attempt -eq 3) {
-            Write-Output "ERROR=copy failed after 3 attempts: $($_.Exception.Message)"
-            Write-Output "PARTIAL=$Dest (delete it and retry)"
-            exit 1
+if (-not $TargetDirectory) {
+    switch ($Client) {
+        'ClaudeCode' { $TargetDirectory = Join-Path $HOME '.claude\skills' }
+        'NeCode' {
+            if (-not $env:APPDATA) { throw 'APPDATA is missing; pass -TargetDirectory explicitly.' }
+            $TargetDirectory = Join-Path $env:APPDATA 'ai.necode.desktop\xdg-config\necode-desktop\skills'
         }
-        Start-Sleep -Milliseconds 300
+        default { $TargetDirectory = Join-Path $HOME '.agents\skills' }
     }
 }
 
-if (-not $copied) {
-    Write-Output 'ERROR=copy did not run'
-    exit 1
+$PackageItems = @('SKILL.md', 'scripts', 'references', 'examples', 'README.md')
+foreach ($relativePath in $PackageItems) {
+    $sourcePath = Join-Path $SourceDirectory $relativePath
+    if (-not (Test-Path -LiteralPath $sourcePath)) { throw "Package is incomplete; missing $relativePath." }
 }
 
-Write-Output "INSTALLED=$Dest"
-Write-Output 'NEXT=restart the NeCode session to activate the skill'
-exit 0
+$TargetDirectory = [System.IO.Path]::GetFullPath($TargetDirectory)
+$Destination = Join-Path $TargetDirectory $SkillDirectoryName
+if (Test-Path -LiteralPath $Destination) {
+    if (-not $Force) { throw "Target already exists. Review it, then pass -Force to replace package files: $Destination" }
+}
+
+if ($PSCmdlet.ShouldProcess($Destination, 'Install NoteExpress MCP skill files')) {
+    if (-not (Test-Path -LiteralPath $TargetDirectory)) {
+        New-Item -ItemType Directory -Path $TargetDirectory -Force | Out-Null
+    }
+    if (-not (Test-Path -LiteralPath $Destination)) {
+        New-Item -ItemType Directory -Path $Destination | Out-Null
+    }
+    foreach ($relativePath in $PackageItems) {
+        Copy-Item -LiteralPath (Join-Path $SourceDirectory $relativePath) -Destination $Destination -Recurse -Force
+    }
+
+    if ($SkillFrontmatterName -ne 'noteexpress-mcp') {
+        $skillPath = Join-Path $Destination 'SKILL.md'
+        $skillText = [System.IO.File]::ReadAllText($skillPath)
+        $skillText = [regex]::Replace($skillText, '(?m)^name:\s*noteexpress-mcp\s*$', 'name: ne-mcp-guard', 1)
+        [System.IO.File]::WriteAllText($skillPath, $skillText, [System.Text.UTF8Encoding]::new($false))
+    }
+
+    Write-Output "INSTALLED=$Destination"
+    Write-Output 'MCP_CONFIG=UNCHANGED'
+    Write-Output 'NEXT=verify the skill is visible and register ne-mcp in the chosen client if needed'
+}
+else {
+    Write-Output "WOULD_INSTALL=$Destination"
+}

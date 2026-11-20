@@ -1,0 +1,1135 @@
+{
+    "captured_at_utc":  "2026-11-20T03:04:00.5498076Z",
+    "endpoint":  "http://127.0.0.1:49527/mcp",
+    "scope":  "The tested unversioned JSON-RPC tools/list request shape. This is not a claim of full conformance to a particular MCP revision.",
+    "page_count":  1,
+    "tool_count":  30,
+    "tool_names":  [
+                       "noteexpress_attach_file",
+                       "noteexpress_create_category",
+                       "noteexpress_create_ref",
+                       "noteexpress_dedupe_refs",
+                       "noteexpress_delete_category",
+                       "noteexpress_delete_refs",
+                       "noteexpress_export_refs",
+                       "noteexpress_extract_pdf_text",
+                       "noteexpress_get_note",
+                       "noteexpress_get_ref",
+                       "noteexpress_get_server_status",
+                       "noteexpress_get_smart_folder",
+                       "noteexpress_import_formatted_refs",
+                       "noteexpress_import_pdf_ref",
+                       "noteexpress_link_refs",
+                       "noteexpress_list_attaches",
+                       "noteexpress_list_categories",
+                       "noteexpress_list_libraries",
+                       "noteexpress_list_refs",
+                       "noteexpress_list_smart_folders",
+                       "noteexpress_move_refs",
+                       "noteexpress_open_library",
+                       "noteexpress_ping",
+                       "noteexpress_remove_attach",
+                       "noteexpress_save_stub_refs",
+                       "noteexpress_search_refs",
+                       "noteexpress_smart_update_refs",
+                       "noteexpress_update_category",
+                       "noteexpress_update_ref",
+                       "noteexpress_version"
+                   ],
+    "pages":  [
+                  {
+                      "request":  {
+                                      "method":  "tools/list",
+                                      "params":  {
+
+                                                 },
+                                      "id":  1,
+                                      "jsonrpc":  "2.0"
+                                  },
+                      "http_status":  200,
+                      "raw_response":  "{\"result\":{\"tools\":[{\"description\":\"USE WHEN: Adding a file to an EXISTING reference. INPUT: uuid (reference GUID; same value as uid elsewhere - param name is uuid only), file_name (absolute path on NE machine); optional on_duplicate, rename_to. OUTPUT: attachment metadata. NOT FOR: Importing a PDF as a new reference (import_pdf_ref). Per-uid guard: smart updating or open in editor returns error + blocked_uids.\",\"inputSchema\":{\"required\":[\"uuid\",\"file_name\"],\"properties\":{\"rename_to\":{\"description\":\"Required only when on_duplicate is \\\"rename\\\". New file name (may include an extension, e.g. \\\"paper-v2.pdf\\\"). If the extension is omitted, the conflicting file\u0027s extension is reused. Must not include a path.\",\"type\":\"string\"},\"file_name\":{\"description\":\"Absolute path of the file on the machine running NoteExpress, e.g. \\\"D:/Inbox/paper.pdf\\\". The file must exist. Required.\",\"type\":\"string\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"on_duplicate\":{\"description\":\"Behavior when the library\u0027s attachment folder already contains a file with the same name. All three modes suppress the UI prompt. use_existing (default) links the reference to the existing file without overwriting. overwrite replaces the existing file with the supplied one. rename writes a new file under a new name (rename_to is then required).\",\"type\":\"string\",\"enum\":[\"use_existing\",\"overwrite\",\"rename\"]},\"uuid\":{\"description\":\"Reference GUID to attach the file to (same value as uid elsewhere; this tool\u0027s parameter name is uuid only). Required.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_attach_file\"},{\"description\":\"Creates a new folder under parent_id. title is required (server-validated). When auto_suffix is true (default), name conflicts are resolved by appending a numeric suffix. Returns the new folder\u0027s id and resolved title.\",\"inputSchema\":{\"required\":[\"title\"],\"properties\":{\"parent_id\":{\"description\":\"Parent folder ID. Omit or 0 to create under the references root (-3). You may pass -3 explicitly; any other negative value is rejected.\",\"type\":\"integer\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"title\":{\"description\":\"Title of the new folder, e.g. \\\"Reading 2026\\\". Required.\",\"type\":\"string\"},\"auto_suffix\":{\"description\":\"If true (default), the server appends a numeric suffix when a sibling with the same title already exists. If false, a duplicate title returns an error.\",\"type\":\"boolean\"}},\"type\":\"object\"},\"name\":\"noteexpress_create_category\"},{\"description\":\"USE WHEN: You know the reference type and want to set fields manually without online SmartUpdate. WORKFLOW: action=list_templates, then list_fields(template), then create(fields Title keys from list_fields). INPUT: template, fields{}, optional target_id, dry_run. OUTPUT: uid only (call get_ref for full record). NOT FOR: title/doi-only items (save_stub_refs); RIS/BibTeX bulk (import_formatted_refs); PDF import (import_pdf_ref). SIDE EFFECT: Jumps NE UI; no SmartUpdate.\",\"inputSchema\":{\"oneOf\":[{\"required\":[\"action\"],\"properties\":{\"action\":{\"enum\":[\"list_templates\"]}}},{\"required\":[\"action\",\"template\"],\"properties\":{\"action\":{\"enum\":[\"list_fields\",\"create\"]}}}],\"properties\":{\"action\":{\"description\":\"list_templates returns creatable reference types. list_fields returns editable_fields for a template. create saves one reference with Title-keyed fields (no SmartUpdate).\",\"type\":\"string\",\"enum\":[\"list_templates\",\"list_fields\",\"create\"]},\"dry_run\":{\"description\":\"For action=create only. Validate only (validated=true); does not save.\",\"type\":\"boolean\"},\"fields\":{\"description\":\"For action=create only. Map keyed by display Title from list_fields. Case-insensitive.\",\"type\":\"object\"},\"main_fields_only\":{\"description\":\"Default false for create_ref. list_fields: when false lists all agent-editable fields; create: field scope for the patch.\",\"type\":\"boolean\"},\"template\":{\"description\":\"Reference type name (e.g. Journal Article). Required for list_fields and create.\",\"type\":\"string\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"target_id\":{\"description\":\"Destination folder for create. Omit or 0 for references root (-3).\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_create_ref\"},{\"description\":\"USE WHEN: Finding or removing duplicate references in the library. INPUT: optional category_ids, fields, keep_policy (most_attachments default), dry_run (default true). keep_policy most_attachments retains the item with the most PDF/file attachments per group (tie: newest _modified). OUTPUT: groups[] (duplicate clusters), group_count; with dry_run false, soft-deletes extras to recycle bin (same as delete_refs). NOT FOR: Merging metadata into one record. TIP: Always dry_run true first.\",\"inputSchema\":{\"properties\":{\"dry_run\":{\"description\":\"If true (default), return the dedupe plan only. If false, move non-keeper duplicates to the recycle bin (soft delete).\",\"type\":\"boolean\"},\"fields\":{\"items\":{\"type\":\"string\"},\"description\":\"Duplicate-match field names (NE internal keys). Default: template, year, author, title (NE UI default).\",\"type\":\"array\"},\"case_insensitive\":{\"description\":\"Case-insensitive field comparison. Default: true.\",\"type\":\"boolean\"},\"max_groups\":{\"description\":\"Optional cap on duplicate groups processed (0 = unlimited). Use to limit large-library runs.\",\"type\":\"integer\"},\"ignore_punctuation\":{\"description\":\"Ignore punctuation and extra spaces when comparing. Default: true.\",\"type\":\"boolean\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"similar_rate\":{\"description\":\"Match strictness 1-100. 100 uses the fast DB duplicate finder; below 100 uses in-memory LCS fuzzy matching (slower). Default: 100.\",\"type\":\"integer\"},\"category_ids\":{\"items\":{\"type\":\"integer\"},\"description\":\"Folder IDs under the references tree to scan. Omit or empty to expand the entire references subtree from the library root (same scope as the NE Find Duplicates dialog on the whole library).\",\"type\":\"array\"},\"keep_policy\":{\"description\":\"Which reference to keep in each duplicate group. most_attachments keeps the item with the most file attachments; ties break on newest _modified. Default: most_attachments.\",\"type\":\"string\",\"enum\":[\"most_attachments\"]}},\"type\":\"object\"},\"name\":\"noteexpress_dedupe_refs\"},{\"description\":\"Deletes a user-created folder. Attached references are moved to the recycle bin per the standard UI rules (this is a soft delete; built-in or virtual folders are rejected). category_id is required.\",\"inputSchema\":{\"required\":[\"category_id\"],\"properties\":{\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"category_id\":{\"description\":\"ID of the folder to delete. Must be a positive integer or the references root sentinel -3. Built-in and virtual folders are rejected by NE. References attached to the folder are moved to the recycle bin per the NoteExpress UI rules.\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_delete_category\"},{\"description\":\"Soft-deletes references. Omit from_category_id, pass 0, or pass -3 (references root) to remove each reference from every folder it belongs to and move it to the recycle bin. Pass a positive folder id to unlink only from that reference folder (recycle bin only when it was the last link). Built-in roots other than -3, recycler, search and smart-directory folders are rejected. The MCP layer never performs hard deletes. Response: resolved_count (uids found in library), deleted_count and deleted_uids (actually unlinked/recycled), skipped_not_in_folder_* when from_category_id targets a folder (found but not in that folder), still_in_folder_* when unlink failed, skipped_not_linked_* / still_linked_* for whole-library delete. Any blocked uid fails whole batch with blocked_uids.\",\"inputSchema\":{\"required\":[\"uids\"],\"properties\":{\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"uids\":{\"items\":{\"type\":\"string\"},\"description\":\"Reference GUIDs to delete. Each item is a GUID string, e.g. \\\"5F4A2B8C-1234-...\\\". At least one entry required. References are moved to the recycle bin; this is a soft delete (the UI\u0027s \\\"empty recycle bin\\\" is not exposed over MCP).\",\"type\":\"array\"},\"from_category_id\":{\"description\":\"Optional. Omit, 0, or -3 (references root) all mean \u0027remove the references from every folder they are in and move them to the recycle bin\u0027. A positive integer means \u0027only unlink them from that specific folder\u0027 and MUST resolve to a real reference folder (built-in roots, recycler subcategories, search and smart-directory folders are rejected with an explicit error rather than silently treated as \u0027all folders\u0027).\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_delete_refs\"},{\"description\":\"Exports references to formatted text (ris, bibtex, or noteexpress). Default output is content in the response; optional file_path on the NE host.\",\"inputSchema\":{\"required\":[\"uids\",\"format\"],\"properties\":{\"output\":{\"description\":\"content returns text in the response (default). file_path writes to an absolute path on the NE machine.\",\"type\":\"string\",\"enum\":[\"content\",\"file_path\"]},\"file_path\":{\"description\":\"Required when output is file_path.\",\"type\":\"string\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"format\":{\"description\":\"Export style/filter.\",\"type\":\"string\",\"enum\":[\"ris\",\"bibtex\",\"noteexpress\"]},\"uids\":{\"items\":{\"type\":\"string\"},\"description\":\"Reference GUIDs to export. Max 100 per call.\",\"type\":\"array\"}},\"type\":\"object\"},\"name\":\"noteexpress_export_refs\"},{\"description\":\"USE WHEN: Reading PDF full text from an attachment. WORKFLOW: get_ref first; copy uid (GUID) and a file PDF attachments[].id into attachment_id. NEVER pass the reference top-level id or notes[].id as attachment_id. Do not pass file_path; server resolves the path. INPUT: uid, attachment_id; optional max_pages, max_chars (omit defaults to 200000; pass 0 for server hard max 2000000), pdf_password, library_id. OUTPUT: plain text; response may echo resolved file_path for diagnostics; may include partial=true and page_errors[] if some pages fail. Uses NoteExpress libPDFium (LoadFromMemory; 64 MiB file size cap). Full-document empty extract returns error with text_unextractable=true and likely_scanned=true (advisory; may also be fonts/encoding) only when start_page=1, max_pages omitted/0, read covers through the last page, and max_chars did not truncate; OCR is not supported. Partial windows with empty text return success. Max 2 extract_pdf_text calls per HTTP JSON-RPC batch. NOT FOR: Guessing paths, client-supplied file_path, or using reference id as attachment_id.\",\"inputSchema\":{\"required\":[\"uid\",\"attachment_id\"],\"properties\":{\"uid\":{\"description\":\"Reference GUID string (not the integer id). Required. Use get_ref first.\",\"type\":\"string\"},\"start_page\":{\"description\":\"1-based starting page. Omit or values \u003c= 0 are treated as 1.\",\"type\":\"integer\"},\"attachment_id\":{\"description\":\"ONLY attachments[].id from get_ref / list_attaches for a file PDF on that reference. NEVER use the reference top-level id (get_ref.id) or notes[].id. Required.\",\"type\":\"integer\"},\"max_chars\":{\"description\":\"Maximum Unicode characters to return. Omit defaults to 200000. Pass 0 or a negative value to use the server hard max (2000000). Values above 2000000 are clamped.\",\"type\":\"integer\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"max_pages\":{\"description\":\"Maximum number of pages to extract. 0 or omitted means extract from start_page to the last page.\",\"type\":\"integer\"},\"pdf_password\":{\"description\":\"Optional. Password for encrypted PDFs.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_extract_pdf_text\"},{\"description\":\"Reads one note. Provide exactly one of note_id or note_uid. body is plain text (rich-text notes are extracted from RVF without HTML/RTF markup). No create or update note tool is exposed over MCP.\",\"inputSchema\":{\"oneOf\":[{\"required\":[\"note_id\"]},{\"required\":[\"note_uid\"]}],\"properties\":{\"note_uid\":{\"description\":\"Note GUID, with or without braces. Provide either note_id OR note_uid (never both).\",\"type\":\"string\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"note_id\":{\"description\":\"Integer ID of the note within this library. Provide either note_id OR note_uid (never both).\",\"type\":\"integer\"}},\"description\":\"Exactly one of note_id or note_uid must be provided. The returned body is plain text (rich-text notes are extracted from RVF without HTML/RTF markup). No create or update note tool is exposed over MCP.\",\"type\":\"object\"},\"name\":\"noteexpress_get_note\"},{\"description\":\"USE WHEN: Reading one reference by uid (read-only). INPUT: uid (GUID string); optional main_fields_only (default true). OUTPUT: uid, id (reference DB int - NOT for PDF extract), template, sparse fields{} (Title keys), attachments, notes, folders. Attachments: file has id/file_path/optional file_ext (no url); directory has id (no url); url items are web links with url (no id). NOT FOR: Editing (update_ref) or creating (create_ref/save_stub_refs). TIP: PDF needs attachments[].id (never top-level id or notes[].id) with extract_pdf_text; update_ref list_editable before edits. SIDE EFFECT: Jumps NE UI.\",\"inputSchema\":{\"required\":[\"uid\"],\"properties\":{\"uid\":{\"description\":\"Reference GUID. May be passed with or without braces, e.g. \\\"5F4A2B8C-...\\\" or \\\"{5F4A2B8C-...}\\\". Required.\",\"type\":\"string\"},\"main_fields_only\":{\"description\":\"Default true. fields{} is keyed by template display Title (sparse values). Star/Priority/Read always shown (yes/no or English label). When true, only Main Fields; auto-fallback sets main_fields_fallback=true and main_fields_only=false. Use false for all template fields with values.\",\"type\":\"boolean\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_get_ref\"},{\"description\":\"Reports the running MCP service status, the currently signed-in user, and the active library (id, path, title, ref_count). ref_count is the unique reference total for the whole library (all folders), same as list_refs with recursive true at the references root (-3).\",\"inputSchema\":{\"properties\":{\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces, e.g. \\\"A1B2C3D4E5F6\\\". When supplied, NE activates that library before returning status. Omit to inspect the currently active library without changing it.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_get_server_status\"},{\"description\":\"USE WHEN: One smart folder or group node metadata (criteria, ref_count, children). INPUT: smart_folder_id OR title (exactly one; title matches smart_leaf only). OUTPUT: id, title, node_kind, criteria_summary, criteria, result_type, ref_count (smart_leaf), children (group), read_items_hint. NOT FOR: Regular folders. NOT FOR: Listing folder contents; does not return items[]. Use list_refs on smart_leaf category_id. result_type itNote/itMind: list_refs returns empty. TIP: list_refs(category_id, summary_mode true). Read-only.\",\"inputSchema\":{\"oneOf\":[{\"required\":[\"smart_folder_id\"]},{\"required\":[\"title\"]}],\"properties\":{\"include_criteria\":{\"description\":\"When true (default), returns criteria and criteria_summary.\",\"type\":\"boolean\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"include_ref_count\":{\"description\":\"When true (default), runs a live query and returns ref_count.\",\"type\":\"boolean\"},\"title\":{\"description\":\"Case-insensitive exact title; matches smart_leaf only, not group nodes. Mutually exclusive with smart_folder_id. Fails when multiple match.\",\"type\":\"string\"},\"smart_folder_id\":{\"description\":\"Positive id from list_smart_folders (smart_leaf or group). Mutually exclusive with title.\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_get_smart_folder\"},{\"description\":\"USE WHEN: Bulk import from RIS, BibTeX, PubMed, or NoteExpress formatted text. INPUT: format, content OR file_path; optional target_id OR target_title (folder name). OUTPUT: imported_count, imported_refs[]. NOT FOR: Single title/doi stub (save_stub_refs); PDF file (import_pdf_ref); manual field entry (create_ref). TIP: format=pubmed is parser type, not destination folder; use target_title when user names a folder. No built-in dedupe; search_refs first. Max 1000 records, 16 MiB.\",\"inputSchema\":{\"required\":[\"format\"],\"oneOf\":[{\"required\":[\"content\"]},{\"required\":[\"file_path\"]}],\"properties\":{\"file_path\":{\"description\":\"Absolute path to a text file readable by the NoteExpress process. Encoding is auto-detected (UTF-8 BOM / UTF-8 / system ANSI fallback). At most 1000 records per call.\",\"type\":\"string\"},\"content\":{\"description\":\"Raw formatted text. Hard cap is 16 MiB on the payload. At most 1000 records are imported per call; split larger inputs.\",\"type\":\"string\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"format\":{\"description\":\"Reference text format (parser), not the destination folder. Maps to NE bundled filters Filters/\u003cName\u003e.nef: noteexpress -\u003e NoteExpress, ris -\u003e RefMan - (RIS), bibtex -\u003e BibTeX, pubmed -\u003e PubMed.\",\"type\":\"string\",\"enum\":[\"noteexpress\",\"ris\",\"bibtex\",\"pubmed\"]},\"target_id\":{\"description\":\"Destination folder ID under the references (ctRef) tree. Omit or 0 to import into the references root (-3). You may pass -3 explicitly; any other negative value is rejected. Mutually exclusive with target_title.\",\"type\":\"integer\"},\"target_title\":{\"description\":\"Destination folder display title under the references (ctRef) tree only (case-insensitive exact match). Does not match notes or other category types. Mutually exclusive with target_id. When multiple ctRef folders share the title, the call fails; use target_id or list_categories (get_category_tree via bridge). Omit both target_id and target_title to import into references root (-3). Must not be empty or whitespace-only.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_import_formatted_refs\"},{\"description\":\"USE WHEN: Creating a NEW reference from a local PDF file. INPUT: file_path (absolute .pdf on NE machine); optional doi, target_id, on_duplicate. OUTPUT: success, id (reference DB int - NOT attachment_id), uid, attachment_path (not full record). NOT FOR: Attaching PDF to existing ref (attach_file). TIP: Call get_ref after import for full metadata and attachments[].id before PDF extract.\",\"inputSchema\":{\"required\":[\"file_path\"],\"properties\":{\"rename_to\":{\"description\":\"Required only when on_duplicate is \\\"rename\\\". New PDF file name. If the extension is omitted, .pdf is appended. Must not include a path.\",\"type\":\"string\"},\"doi\":{\"description\":\"Optional. DOI to write into the new reference\u0027s DOI field (internal key _doi). Pass the bare identifier; no \\\"doi:\\\" prefix needed.\",\"type\":\"string\"},\"file_path\":{\"description\":\"Absolute path of the source PDF on the machine running NoteExpress, e.g. \\\"D:/Inbox/paper.pdf\\\". Extension must be .pdf. Required.\",\"type\":\"string\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"on_duplicate\":{\"description\":\"Behavior when the library\u0027s attachment folder already contains a PDF with the same name. All three modes suppress the UI prompt. use_existing (default) reuses the existing file. overwrite replaces it. rename writes a new file under a new name (rename_to is then required).\",\"type\":\"string\",\"enum\":[\"use_existing\",\"overwrite\",\"rename\"]},\"target_id\":{\"description\":\"Destination folder ID. Omit or 0 to import into the references root (-3). You may pass -3 explicitly; any other negative value is rejected.\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_import_pdf_ref\"},{\"description\":\"USE WHEN: Copying references into another folder without removing existing links. INPUT: uids[], to_category_id (must resolve to ctRef reference folder; smart-folder ids rejected). OUTPUT: linked_count. NOT FOR: Moving out of source folder (use move_refs). Same as UI Add to folder. Any blocked uid fails whole batch with blocked_uids.\",\"inputSchema\":{\"required\":[\"uids\",\"to_category_id\"],\"properties\":{\"to_category_id\":{\"description\":\"Destination folder ID. Must be non-negative or -3 (references root). Must resolve to a ctRef reference folder under the references tree; smart-folder ids are rejected. Existing folder memberships are preserved; this is equivalent to \\\"add to folder\\\" in the UI.\",\"type\":\"integer\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"uids\":{\"items\":{\"type\":\"string\"},\"description\":\"Reference GUIDs to link. At least one entry required.\",\"type\":\"array\"}},\"type\":\"object\"},\"name\":\"noteexpress_link_refs\"},{\"description\":\"Lists attachments for one reference (same shape as get_ref attachments[]). item_type=file: id, file_path, optional file_ext (lowercase suffix, omitted if none); no url. item_type=directory: id; no url. item_type=url: web link with url field (no id; from reference _url list). Use file attachments[].id with extract_pdf_text or remove_attach (never parent reference id).\",\"inputSchema\":{\"required\":[\"uid\"],\"properties\":{\"uid\":{\"description\":\"Reference GUID. Required.\",\"type\":\"string\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_list_attaches\"},{\"description\":\"Returns the references (ctRef) folder tree of the active (or specified) library as a nested structure, including the reference count for each folder. Built-in folders such as the references root (-3) and the trash are included. Does not include the smart-directory tree (-8); use list_smart_folders for smart folders.\",\"inputSchema\":{\"properties\":{\"max_depth\":{\"description\":\"Maximum recursion depth. Omit for unlimited (-1). 0 returns only the root node without children.\",\"type\":\"integer\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"root\":{\"description\":\"Folder ID to use as the tree root. Omit or 0 to start at the references root (-3, the top-level \\\"References\\\" container). You may pass -3 explicitly; any other negative value is rejected.\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_list_categories\"},{\"description\":\"Lists every library that is currently open in NoteExpress (library_id, file path, active flag, ref_count). ref_count is the unique whole-library reference total (all folders). Pass library_id to activate a specific open library before returning.\",\"inputSchema\":{\"properties\":{\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces, e.g. \\\"A1B2C3D4E5F6\\\". When supplied, NE activates that library before returning the list.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_list_libraries\"},{\"description\":\"USE WHEN: Browsing a folder with no search filters (regular ctRef folders or smart_leaf virtual folders). INPUT: category_id (omit/0/-3 = references root; positive = ctRef folder or smart_leaf id from list_smart_folders; node_kind=group ids return empty items[]/total 0 - use smart_leaf child ids). Discover regular ids via list_categories; smart ids via list_smart_folders (not list_categories). Optional recursive (prefer false for smart_leaf), summary_mode, page, page_size (default 20, max 500). OUTPUT: items[], total. NOT FOR: Filtered search (use search_refs). Without summary_mode (default false) each item is a full record (fields{}, main_fields_only default true); summary_mode true returns compact rows. Row id is reference DB int - NEVER attachment_id (PDF needs get_ref attachments[].id). TIP: get_ref for one record detail.\",\"inputSchema\":{\"properties\":{\"order\":{\"description\":\"Sort direction. Default: desc.\",\"type\":\"string\",\"enum\":[\"asc\",\"desc\"]},\"main_fields_only\":{\"description\":\"Default true. When false (full record, not summary_mode), fields{} uses template display Titles (sparse). Star/Priority/Read always shown. When true, only Main Fields; auto-fallback sets main_fields_fallback=true and main_fields_only=false. Ignored when summary_mode is true.\",\"type\":\"boolean\"},\"order_by\":{\"description\":\"Sort field. Default: modified.\",\"type\":\"string\",\"enum\":[\"created\",\"modified\",\"year\",\"title\"]},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"recursive\":{\"description\":\"Include items from descendant folders. Default: false (only the specified folder).\",\"type\":\"boolean\"},\"page\":{\"description\":\"1-based page number. Default 1.\",\"type\":\"integer\"},\"category_id\":{\"description\":\"Folder ID under references root (-3), or a smart_leaf id from list_smart_folders. Omit or 0 to list from the references root (-3). You may pass -3 explicitly; any other negative value is rejected. node_kind=group ids return empty items (use smart_leaf child ids).\",\"type\":\"integer\"},\"page_size\":{\"description\":\"Items per page. Default 20, maximum 500.\",\"type\":\"integer\"},\"summary_mode\":{\"description\":\"If true, each item returns only uid, id, title, author, year, and _doi. id is the reference DB integer (same as get_ref.id), NEVER attachment_id. Default false. Use get_ref for attachments[].id and full detail.\",\"type\":\"boolean\"}},\"type\":\"object\"},\"name\":\"noteexpress_list_refs\"},{\"description\":\"USE WHEN: Discovering smart folders (virtual query-based folders under root -8). INPUT: optional library_id, max_depth, include_criteria (default true), include_ref_count (default false). OUTPUT: root_id, tree[] with id, title, node_kind (group|smart_leaf), is_container, result_type, criteria_summary. node_kind group = organizational folder under smart-directory tree (no filter rules); smart_leaf = query folder. NOT FOR: Regular reference folders (use list_categories). TIP: list_refs only on smart_leaf ids. Read-only.\",\"inputSchema\":{\"properties\":{\"include_criteria\":{\"description\":\"When true (default), each leaf smart folder includes criteria and criteria_summary parsed from its saved filter rules.\",\"type\":\"boolean\"},\"max_depth\":{\"description\":\"Maximum recursion depth under smart-folder root (-8). Omit for unlimited (-1). 0 returns an empty tree array (root container only).\",\"type\":\"integer\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"include_ref_count\":{\"description\":\"When true, each leaf runs a live query to count matching items (O(n) per folder; default false).\",\"type\":\"boolean\"}},\"type\":\"object\"},\"name\":\"noteexpress_list_smart_folders\"},{\"description\":\"USE WHEN: Moving references out of one folder into another (same library). INPUT: uids[], from_category_id, to_category_id (both required; -3 = root; must resolve to ctRef folders; smart-folder ids rejected). OUTPUT: moved_count. NOT FOR: Keeping source folder link (use link_refs). Any blocked uid fails whole batch with blocked_uids.\",\"inputSchema\":{\"required\":[\"uids\",\"from_category_id\",\"to_category_id\"],\"properties\":{\"to_category_id\":{\"description\":\"Destination folder ID. Must be non-negative or -3 (references root). Must resolve to a ctRef reference folder under the references tree; smart-folder ids are rejected. Any other negative value is rejected.\",\"type\":\"integer\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"uids\":{\"items\":{\"type\":\"string\"},\"description\":\"Reference GUIDs to move. At least one entry required.\",\"type\":\"array\"},\"from_category_id\":{\"description\":\"Source folder ID. Must be non-negative or -3 (references root). Must resolve to a ctRef reference folder under the references tree; smart-folder ids are rejected. Any other negative value is rejected.\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_move_refs\"},{\"description\":\"Opens a .ndb or .nel library file in NoteExpress and loads it into the process. Does NOT switch the currently active/working library. Returns the new library_id. The file path must be reachable from the NoteExpress process; this tool does not transfer file contents.\",\"inputSchema\":{\"required\":[\"library_path\"],\"properties\":{\"library_path\":{\"description\":\"Absolute file system path to a NoteExpress library, ending in .ndb or .nel, e.g. \\\"D:/Refs/MyLibrary.ndb\\\". Must exist on the machine that runs NoteExpress.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_open_library\"},{\"description\":\"Lightweight liveness probe. Returns {ok:true, pong:\\\"NoteExpress-MCP\\\", timestamp:\\\"YYYY-MM-DDTHH:MM:SS\\\"}. Does not touch the database or activate any library.\",\"inputSchema\":{\"properties\":{},\"type\":\"object\"},\"name\":\"noteexpress_ping\"},{\"description\":\"Removes one file or directory attachment from a reference by attachment_id (ONLY attachments[].id; NEVER reference top-level id or notes[].id). Does not remove item_type=url web links (those have no id). The attachment must belong to the given reference uid.\",\"inputSchema\":{\"required\":[\"uid\",\"attachment_id\"],\"properties\":{\"uid\":{\"description\":\"Reference GUID string (not the integer id). Required.\",\"type\":\"string\"},\"attachment_id\":{\"description\":\"ONLY attachments[].id from list_attaches or get_ref (file/dir). NEVER the reference top-level id or notes[].id. Required.\",\"type\":\"integer\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_remove_attach\"},{\"description\":\"USE WHEN: You only have title and/or DOI and want NE to fetch metadata online (SmartUpdate). INPUT: refs[] (title and/or doi per item, batch OK), optional target_id. OUTPUT: saved_refs[] (full v2 records), saved_count (may be 0 if every item lacked title and doi). NOT FOR: Full manual fields (create_ref); RIS/BibTeX (import_formatted_refs); PDF (import_pdf_ref). SIDE EFFECT: Queues SmartUpdate (online fetch needs signed-in NE account; without login metadata may stay thin - use smart_update_refs which errors clearly if not logged in); selects first item in NE UI. Replaces former save_refs. Other uids remain writable while one uid is smart updating.\",\"inputSchema\":{\"required\":[\"refs\"],\"properties\":{\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"refs\":{\"oneOf\":[{\"items\":{\"properties\":{\"doi\":{\"description\":\"Reference DOI (bare identifier; no \\\"doi:\\\" prefix needed).\",\"type\":\"string\"},\"template\":{\"description\":\"Optional reference type name (e.g. Journal Article). Defaults to Journal Article when omitted.\",\"type\":\"string\"},\"title\":{\"description\":\"Reference title.\",\"type\":\"string\"}},\"type\":\"object\",\"anyOf\":[{\"required\":[\"title\"]},{\"required\":[\"doi\"]}]},\"type\":\"array\"},{\"type\":\"string\"}],\"description\":\"Either a JSON array of reference objects (recommended; each item is an object with at least one of \\\"title\\\" or \\\"doi\\\") or a legacy WeCite string blob (single-string form, kept for backwards compatibility). Content and length are validated by the server.\"},\"target_id\":{\"description\":\"Destination folder ID. Omit or 0 to save under the references root (-3). You may pass -3 explicitly; any other negative value is rejected.\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_save_stub_refs\"},{\"description\":\"USE WHEN: Finding references by title, author, doi, year, tags, or keyword. INPUT: at least one filter (required); optional category_id (ctRef folders only; for smart folders use list_refs on smart_leaf), recursive (default true; list_refs defaults false), summary_mode, page, page_size (default 20, max 500). OUTPUT: items[], total. NOT FOR: Folder browse without filters (use list_refs). Does not search note bodies. Without summary_mode (default false) each hit is a full record (fields{}); summary_mode true for compact rows. Row id is reference DB int - NEVER attachment_id. TIP: get_ref for detail/PDF. Example: {\\\"author\\\":\\\"Brewer\\\",\\\"year\\\":2011,\\\"summary_mode\\\":true}.\",\"inputSchema\":{\"properties\":{\"order\":{\"description\":\"Sort direction. Default: desc.\",\"type\":\"string\",\"enum\":[\"asc\",\"desc\"]},\"doi\":{\"description\":\"Substring match on DOI, case-insensitive.\",\"type\":\"string\"},\"main_fields_only\":{\"description\":\"Default true. When false (full record, not summary_mode), fields{} uses template display Titles (sparse). Star/Priority/Read always shown. When true, only Main Fields; auto-fallback sets main_fields_fallback=true and main_fields_only=false. Ignored when summary_mode is true.\",\"type\":\"boolean\"},\"order_by\":{\"description\":\"Sort field. Default: modified.\",\"type\":\"string\",\"enum\":[\"created\",\"modified\",\"year\",\"title\"]},\"keyword\":{\"oneOf\":[{\"type\":\"string\"},{\"items\":{\"type\":\"string\"},\"type\":\"array\"}],\"description\":\"Free-text filter. Either a single string or an array. When an array is supplied, the reference matches if any item is found in title, author, DOI, or tags (case-insensitive, OR).\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"title\":{\"description\":\"Substring match on title, case-insensitive.\",\"type\":\"string\"},\"recursive\":{\"description\":\"Search descendant folders. Default: true.\",\"type\":\"boolean\"},\"year\":{\"description\":\"Exact year match.\",\"type\":\"integer\"},\"tags\":{\"oneOf\":[{\"type\":\"string\"},{\"items\":{\"type\":\"string\"},\"type\":\"array\"}],\"description\":\"Tag filter. Either a single string or an array. When an array is supplied, every item must appear in the reference\u0027s keywords (case-sensitive, AND).\"},\"page\":{\"description\":\"1-based page number. Default 1.\",\"type\":\"integer\"},\"category_id\":{\"description\":\"Starting ctRef folder ID (not smart_leaf/group). Omit or 0 to start at the references root (-3). You may pass -3 explicitly; any other negative value is rejected. For smart folders use list_refs on a smart_leaf id.\",\"type\":\"integer\"},\"page_size\":{\"description\":\"Items per page. Default 20, maximum 500.\",\"type\":\"integer\"},\"author\":{\"description\":\"Substring match on author, case-insensitive.\",\"type\":\"string\"},\"summary_mode\":{\"description\":\"If true, each item returns only uid, id, title, author, year, and _doi. id is the reference DB integer (same as get_ref.id), NEVER attachment_id. Default false. Use get_ref for attachments[].id and full detail.\",\"type\":\"boolean\"}},\"description\":\"References-only search (note bodies are NOT included). At least one of title, author, doi, year, tags, keyword MUST be provided (enforced by anyOf above and re-checked server-side). Fields combine with AND; tags-array uses AND; keyword-array uses OR. Each returned item is full unless summary_mode is true (compact uid/title/year/_doi). Note bodies are not searched.\",\"type\":\"object\",\"anyOf\":[{\"required\":[\"title\"]},{\"required\":[\"author\"]},{\"required\":[\"doi\"]},{\"required\":[\"year\"]},{\"required\":[\"tags\"]},{\"required\":[\"keyword\"]}]},\"name\":\"noteexpress_search_refs\"},{\"description\":\"USE WHEN: Refreshing online metadata on EXISTING references. INPUT: uids[] (1-100); optional wait_for_update, update_timeout_ms. OUTPUT: triggered_count, results[]. NOT FOR: New references (save_stub_refs already queues SmartUpdate). May require NE login. Async by default.\",\"inputSchema\":{\"required\":[\"uids\"],\"properties\":{\"wait_for_update\":{\"description\":\"If true, block until SmartUpdate finishes or update_timeout_ms elapses. Default false (async).\",\"type\":\"boolean\"},\"update_timeout_ms\":{\"description\":\"Used when wait_for_update is true. Default 30000.\",\"type\":\"integer\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"uids\":{\"items\":{\"type\":\"string\"},\"description\":\"Existing reference GUIDs (1-100). Required.\",\"type\":\"array\"}},\"type\":\"object\"},\"name\":\"noteexpress_smart_update_refs\"},{\"description\":\"Renames a user folder (category_id + title). Does not change parent_id. Built-in and virtual folders are rejected.\",\"inputSchema\":{\"required\":[\"category_id\",\"title\"],\"properties\":{\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"},\"title\":{\"description\":\"New folder title. Required.\",\"type\":\"string\"},\"category_id\":{\"description\":\"Folder id to rename. Must not be a built-in or virtual folder.\",\"type\":\"integer\"}},\"type\":\"object\"},\"name\":\"noteexpress_update_category\"},{\"description\":\"USE WHEN: Editing fields on an EXISTING reference (no SmartUpdate). WORKFLOW: action=list_editable(uid), then action=update with Title keys from editable_fields. INPUT: uid, fields{}, optional main_fields_only (default true), dry_run. OUTPUT: full record or validated=true. NOT FOR: New references (save_stub_refs/create_ref). TIP: Star 0|1; Priority index; read_only_titles. SIDE EFFECT: Jumps NE UI. Per-uid guard on update: smart updating or open in editor.\",\"inputSchema\":{\"required\":[\"action\",\"uid\"],\"properties\":{\"action\":{\"description\":\"list_editable returns agent-editable fields for one uid (title, type, optional allowed_values/allowed_labels/hint/suggestions) plus read_only_titles. update applies a Title-keyed patch using titles from list_editable.\",\"type\":\"string\",\"enum\":[\"list_editable\",\"update\"]},\"dry_run\":{\"description\":\"For action=update only. If true, validate only (validated=true); does not save or return a patched full record.\",\"type\":\"boolean\"},\"uid\":{\"description\":\"Reference GUID. Required.\",\"type\":\"string\"},\"fields\":{\"description\":\"For action=update only. Partial map keyed by field display Title from list_editable (e.g. Author, DOI, Keywords). Case-insensitive.\",\"type\":\"object\"},\"main_fields_only\":{\"description\":\"Default true. When true, list/update only Main Fields (Author, Title, DOI, etc.). Set false for all agent-editable fields outside Main Fields (excludes impact factor, system timestamps, custom fields). When list_editable auto-fallbacks (no Main Fields template), response main_fields_only is false.\",\"type\":\"boolean\"},\"library_id\":{\"description\":\"Optional. Database UID of an already-opened library, without braces. Defaults to the active library.\",\"type\":\"string\"}},\"type\":\"object\"},\"name\":\"noteexpress_update_ref\"},{\"description\":\"Returns the NoteExpress application version, build number, MCP protocol version, and a feature list (tool names registered in tools/list). Use this for client-side capability negotiation.\",\"inputSchema\":{\"properties\":{},\"type\":\"object\"},\"name\":\"noteexpress_version\"}]},\"id\":1,\"jsonrpc\":\"2.0\"}"
+                  }
+              ],
+    "tools":  [
+                  {
+                      "description":  "USE WHEN: Adding a file to an EXISTING reference. INPUT: uuid (reference GUID; same value as uid elsewhere - param name is uuid only), file_name (absolute path on NE machine); optional on_duplicate, rename_to. OUTPUT: attachment metadata. NOT FOR: Importing a PDF as a new reference (import_pdf_ref). Per-uid guard: smart updating or open in editor returns error + blocked_uids.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uuid",
+                                                           "file_name"
+                                                       ],
+                                          "properties":  {
+                                                             "rename_to":  {
+                                                                               "description":  "Required only when on_duplicate is \"rename\". New file name (may include an extension, e.g. \"paper-v2.pdf\"). If the extension is omitted, the conflicting file\u0027s extension is reused. Must not include a path.",
+                                                                               "type":  "string"
+                                                                           },
+                                                             "file_name":  {
+                                                                               "description":  "Absolute path of the file on the machine running NoteExpress, e.g. \"D:/Inbox/paper.pdf\". The file must exist. Required.",
+                                                                               "type":  "string"
+                                                                           },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "on_duplicate":  {
+                                                                                  "description":  "Behavior when the library\u0027s attachment folder already contains a file with the same name. All three modes suppress the UI prompt. use_existing (default) links the reference to the existing file without overwriting. overwrite replaces the existing file with the supplied one. rename writes a new file under a new name (rename_to is then required).",
+                                                                                  "type":  "string",
+                                                                                  "enum":  [
+                                                                                               "use_existing",
+                                                                                               "overwrite",
+                                                                                               "rename"
+                                                                                           ]
+                                                                              },
+                                                             "uuid":  {
+                                                                          "description":  "Reference GUID to attach the file to (same value as uid elsewhere; this tool\u0027s parameter name is uuid only). Required.",
+                                                                          "type":  "string"
+                                                                      }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_attach_file"
+                  },
+                  {
+                      "description":  "Creates a new folder under parent_id. title is required (server-validated). When auto_suffix is true (default), name conflicts are resolved by appending a numeric suffix. Returns the new folder\u0027s id and resolved title.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "title"
+                                                       ],
+                                          "properties":  {
+                                                             "parent_id":  {
+                                                                               "description":  "Parent folder ID. Omit or 0 to create under the references root (-3). You may pass -3 explicitly; any other negative value is rejected.",
+                                                                               "type":  "integer"
+                                                                           },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "title":  {
+                                                                           "description":  "Title of the new folder, e.g. \"Reading 2026\". Required.",
+                                                                           "type":  "string"
+                                                                       },
+                                                             "auto_suffix":  {
+                                                                                 "description":  "If true (default), the server appends a numeric suffix when a sibling with the same title already exists. If false, a duplicate title returns an error.",
+                                                                                 "type":  "boolean"
+                                                                             }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_create_category"
+                  },
+                  {
+                      "description":  "USE WHEN: You know the reference type and want to set fields manually without online SmartUpdate. WORKFLOW: action=list_templates, then list_fields(template), then create(fields Title keys from list_fields). INPUT: template, fields{}, optional target_id, dry_run. OUTPUT: uid only (call get_ref for full record). NOT FOR: title/doi-only items (save_stub_refs); RIS/BibTeX bulk (import_formatted_refs); PDF import (import_pdf_ref). SIDE EFFECT: Jumps NE UI; no SmartUpdate.",
+                      "inputSchema":  {
+                                          "oneOf":  [
+                                                        {
+                                                            "required":  [
+                                                                             "action"
+                                                                         ],
+                                                            "properties":  {
+                                                                               "action":  {
+                                                                                              "enum":  [
+                                                                                                           "list_templates"
+                                                                                                       ]
+                                                                                          }
+                                                                           }
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "action",
+                                                                             "template"
+                                                                         ],
+                                                            "properties":  {
+                                                                               "action":  {
+                                                                                              "enum":  [
+                                                                                                           "list_fields",
+                                                                                                           "create"
+                                                                                                       ]
+                                                                                          }
+                                                                           }
+                                                        }
+                                                    ],
+                                          "properties":  {
+                                                             "action":  {
+                                                                            "description":  "list_templates returns creatable reference types. list_fields returns editable_fields for a template. create saves one reference with Title-keyed fields (no SmartUpdate).",
+                                                                            "type":  "string",
+                                                                            "enum":  [
+                                                                                         "list_templates",
+                                                                                         "list_fields",
+                                                                                         "create"
+                                                                                     ]
+                                                                        },
+                                                             "dry_run":  {
+                                                                             "description":  "For action=create only. Validate only (validated=true); does not save.",
+                                                                             "type":  "boolean"
+                                                                         },
+                                                             "fields":  {
+                                                                            "description":  "For action=create only. Map keyed by display Title from list_fields. Case-insensitive.",
+                                                                            "type":  "object"
+                                                                        },
+                                                             "main_fields_only":  {
+                                                                                      "description":  "Default false for create_ref. list_fields: when false lists all agent-editable fields; create: field scope for the patch.",
+                                                                                      "type":  "boolean"
+                                                                                  },
+                                                             "template":  {
+                                                                              "description":  "Reference type name (e.g. Journal Article). Required for list_fields and create.",
+                                                                              "type":  "string"
+                                                                          },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "target_id":  {
+                                                                               "description":  "Destination folder for create. Omit or 0 for references root (-3).",
+                                                                               "type":  "integer"
+                                                                           }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_create_ref"
+                  },
+                  {
+                      "description":  "USE WHEN: Finding or removing duplicate references in the library. INPUT: optional category_ids, fields, keep_policy (most_attachments default), dry_run (default true). keep_policy most_attachments retains the item with the most PDF/file attachments per group (tie: newest _modified). OUTPUT: groups[] (duplicate clusters), group_count; with dry_run false, soft-deletes extras to recycle bin (same as delete_refs). NOT FOR: Merging metadata into one record. TIP: Always dry_run true first.",
+                      "inputSchema":  {
+                                          "properties":  {
+                                                             "dry_run":  {
+                                                                             "description":  "If true (default), return the dedupe plan only. If false, move non-keeper duplicates to the recycle bin (soft delete).",
+                                                                             "type":  "boolean"
+                                                                         },
+                                                             "fields":  {
+                                                                            "items":  {
+                                                                                          "type":  "string"
+                                                                                      },
+                                                                            "description":  "Duplicate-match field names (NE internal keys). Default: template, year, author, title (NE UI default).",
+                                                                            "type":  "array"
+                                                                        },
+                                                             "case_insensitive":  {
+                                                                                      "description":  "Case-insensitive field comparison. Default: true.",
+                                                                                      "type":  "boolean"
+                                                                                  },
+                                                             "max_groups":  {
+                                                                                "description":  "Optional cap on duplicate groups processed (0 = unlimited). Use to limit large-library runs.",
+                                                                                "type":  "integer"
+                                                                            },
+                                                             "ignore_punctuation":  {
+                                                                                        "description":  "Ignore punctuation and extra spaces when comparing. Default: true.",
+                                                                                        "type":  "boolean"
+                                                                                    },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "similar_rate":  {
+                                                                                  "description":  "Match strictness 1-100. 100 uses the fast DB duplicate finder; below 100 uses in-memory LCS fuzzy matching (slower). Default: 100.",
+                                                                                  "type":  "integer"
+                                                                              },
+                                                             "category_ids":  {
+                                                                                  "items":  {
+                                                                                                "type":  "integer"
+                                                                                            },
+                                                                                  "description":  "Folder IDs under the references tree to scan. Omit or empty to expand the entire references subtree from the library root (same scope as the NE Find Duplicates dialog on the whole library).",
+                                                                                  "type":  "array"
+                                                                              },
+                                                             "keep_policy":  {
+                                                                                 "description":  "Which reference to keep in each duplicate group. most_attachments keeps the item with the most file attachments; ties break on newest _modified. Default: most_attachments.",
+                                                                                 "type":  "string",
+                                                                                 "enum":  [
+                                                                                              "most_attachments"
+                                                                                          ]
+                                                                             }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_dedupe_refs"
+                  },
+                  {
+                      "description":  "Deletes a user-created folder. Attached references are moved to the recycle bin per the standard UI rules (this is a soft delete; built-in or virtual folders are rejected). category_id is required.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "category_id"
+                                                       ],
+                                          "properties":  {
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "category_id":  {
+                                                                                 "description":  "ID of the folder to delete. Must be a positive integer or the references root sentinel -3. Built-in and virtual folders are rejected by NE. References attached to the folder are moved to the recycle bin per the NoteExpress UI rules.",
+                                                                                 "type":  "integer"
+                                                                             }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_delete_category"
+                  },
+                  {
+                      "description":  "Soft-deletes references. Omit from_category_id, pass 0, or pass -3 (references root) to remove each reference from every folder it belongs to and move it to the recycle bin. Pass a positive folder id to unlink only from that reference folder (recycle bin only when it was the last link). Built-in roots other than -3, recycler, search and smart-directory folders are rejected. The MCP layer never performs hard deletes. Response: resolved_count (uids found in library), deleted_count and deleted_uids (actually unlinked/recycled), skipped_not_in_folder_* when from_category_id targets a folder (found but not in that folder), still_in_folder_* when unlink failed, skipped_not_linked_* / still_linked_* for whole-library delete. Any blocked uid fails whole batch with blocked_uids.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uids"
+                                                       ],
+                                          "properties":  {
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "uids":  {
+                                                                          "items":  {
+                                                                                        "type":  "string"
+                                                                                    },
+                                                                          "description":  "Reference GUIDs to delete. Each item is a GUID string, e.g. \"5F4A2B8C-1234-...\". At least one entry required. References are moved to the recycle bin; this is a soft delete (the UI\u0027s \"empty recycle bin\" is not exposed over MCP).",
+                                                                          "type":  "array"
+                                                                      },
+                                                             "from_category_id":  {
+                                                                                      "description":  "Optional. Omit, 0, or -3 (references root) all mean \u0027remove the references from every folder they are in and move them to the recycle bin\u0027. A positive integer means \u0027only unlink them from that specific folder\u0027 and MUST resolve to a real reference folder (built-in roots, recycler subcategories, search and smart-directory folders are rejected with an explicit error rather than silently treated as \u0027all folders\u0027).",
+                                                                                      "type":  "integer"
+                                                                                  }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_delete_refs"
+                  },
+                  {
+                      "description":  "Exports references to formatted text (ris, bibtex, or noteexpress). Default output is content in the response; optional file_path on the NE host.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uids",
+                                                           "format"
+                                                       ],
+                                          "properties":  {
+                                                             "output":  {
+                                                                            "description":  "content returns text in the response (default). file_path writes to an absolute path on the NE machine.",
+                                                                            "type":  "string",
+                                                                            "enum":  [
+                                                                                         "content",
+                                                                                         "file_path"
+                                                                                     ]
+                                                                        },
+                                                             "file_path":  {
+                                                                               "description":  "Required when output is file_path.",
+                                                                               "type":  "string"
+                                                                           },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "format":  {
+                                                                            "description":  "Export style/filter.",
+                                                                            "type":  "string",
+                                                                            "enum":  [
+                                                                                         "ris",
+                                                                                         "bibtex",
+                                                                                         "noteexpress"
+                                                                                     ]
+                                                                        },
+                                                             "uids":  {
+                                                                          "items":  {
+                                                                                        "type":  "string"
+                                                                                    },
+                                                                          "description":  "Reference GUIDs to export. Max 100 per call.",
+                                                                          "type":  "array"
+                                                                      }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_export_refs"
+                  },
+                  {
+                      "description":  "USE WHEN: Reading PDF full text from an attachment. WORKFLOW: get_ref first; copy uid (GUID) and a file PDF attachments[].id into attachment_id. NEVER pass the reference top-level id or notes[].id as attachment_id. Do not pass file_path; server resolves the path. INPUT: uid, attachment_id; optional max_pages, max_chars (omit defaults to 200000; pass 0 for server hard max 2000000), pdf_password, library_id. OUTPUT: plain text; response may echo resolved file_path for diagnostics; may include partial=true and page_errors[] if some pages fail. Uses NoteExpress libPDFium (LoadFromMemory; 64 MiB file size cap). Full-document empty extract returns error with text_unextractable=true and likely_scanned=true (advisory; may also be fonts/encoding) only when start_page=1, max_pages omitted/0, read covers through the last page, and max_chars did not truncate; OCR is not supported. Partial windows with empty text return success. Max 2 extract_pdf_text calls per HTTP JSON-RPC batch. NOT FOR: Guessing paths, client-supplied file_path, or using reference id as attachment_id.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uid",
+                                                           "attachment_id"
+                                                       ],
+                                          "properties":  {
+                                                             "uid":  {
+                                                                         "description":  "Reference GUID string (not the integer id). Required. Use get_ref first.",
+                                                                         "type":  "string"
+                                                                     },
+                                                             "start_page":  {
+                                                                                "description":  "1-based starting page. Omit or values \u003c= 0 are treated as 1.",
+                                                                                "type":  "integer"
+                                                                            },
+                                                             "attachment_id":  {
+                                                                                   "description":  "ONLY attachments[].id from get_ref / list_attaches for a file PDF on that reference. NEVER use the reference top-level id (get_ref.id) or notes[].id. Required.",
+                                                                                   "type":  "integer"
+                                                                               },
+                                                             "max_chars":  {
+                                                                               "description":  "Maximum Unicode characters to return. Omit defaults to 200000. Pass 0 or a negative value to use the server hard max (2000000). Values above 2000000 are clamped.",
+                                                                               "type":  "integer"
+                                                                           },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "max_pages":  {
+                                                                               "description":  "Maximum number of pages to extract. 0 or omitted means extract from start_page to the last page.",
+                                                                               "type":  "integer"
+                                                                           },
+                                                             "pdf_password":  {
+                                                                                  "description":  "Optional. Password for encrypted PDFs.",
+                                                                                  "type":  "string"
+                                                                              }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_extract_pdf_text"
+                  },
+                  {
+                      "description":  "Reads one note. Provide exactly one of note_id or note_uid. body is plain text (rich-text notes are extracted from RVF without HTML/RTF markup). No create or update note tool is exposed over MCP.",
+                      "inputSchema":  {
+                                          "oneOf":  [
+                                                        {
+                                                            "required":  [
+                                                                             "note_id"
+                                                                         ]
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "note_uid"
+                                                                         ]
+                                                        }
+                                                    ],
+                                          "properties":  {
+                                                             "note_uid":  {
+                                                                              "description":  "Note GUID, with or without braces. Provide either note_id OR note_uid (never both).",
+                                                                              "type":  "string"
+                                                                          },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "note_id":  {
+                                                                             "description":  "Integer ID of the note within this library. Provide either note_id OR note_uid (never both).",
+                                                                             "type":  "integer"
+                                                                         }
+                                                         },
+                                          "description":  "Exactly one of note_id or note_uid must be provided. The returned body is plain text (rich-text notes are extracted from RVF without HTML/RTF markup). No create or update note tool is exposed over MCP.",
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_get_note"
+                  },
+                  {
+                      "description":  "USE WHEN: Reading one reference by uid (read-only). INPUT: uid (GUID string); optional main_fields_only (default true). OUTPUT: uid, id (reference DB int - NOT for PDF extract), template, sparse fields{} (Title keys), attachments, notes, folders. Attachments: file has id/file_path/optional file_ext (no url); directory has id (no url); url items are web links with url (no id). NOT FOR: Editing (update_ref) or creating (create_ref/save_stub_refs). TIP: PDF needs attachments[].id (never top-level id or notes[].id) with extract_pdf_text; update_ref list_editable before edits. SIDE EFFECT: Jumps NE UI.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uid"
+                                                       ],
+                                          "properties":  {
+                                                             "uid":  {
+                                                                         "description":  "Reference GUID. May be passed with or without braces, e.g. \"5F4A2B8C-...\" or \"{5F4A2B8C-...}\". Required.",
+                                                                         "type":  "string"
+                                                                     },
+                                                             "main_fields_only":  {
+                                                                                      "description":  "Default true. fields{} is keyed by template display Title (sparse values). Star/Priority/Read always shown (yes/no or English label). When true, only Main Fields; auto-fallback sets main_fields_fallback=true and main_fields_only=false. Use false for all template fields with values.",
+                                                                                      "type":  "boolean"
+                                                                                  },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_get_ref"
+                  },
+                  {
+                      "description":  "Reports the running MCP service status, the currently signed-in user, and the active library (id, path, title, ref_count). ref_count is the unique reference total for the whole library (all folders), same as list_refs with recursive true at the references root (-3).",
+                      "inputSchema":  {
+                                          "properties":  {
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces, e.g. \"A1B2C3D4E5F6\". When supplied, NE activates that library before returning status. Omit to inspect the currently active library without changing it.",
+                                                                                "type":  "string"
+                                                                            }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_get_server_status"
+                  },
+                  {
+                      "description":  "USE WHEN: One smart folder or group node metadata (criteria, ref_count, children). INPUT: smart_folder_id OR title (exactly one; title matches smart_leaf only). OUTPUT: id, title, node_kind, criteria_summary, criteria, result_type, ref_count (smart_leaf), children (group), read_items_hint. NOT FOR: Regular folders. NOT FOR: Listing folder contents; does not return items[]. Use list_refs on smart_leaf category_id. result_type itNote/itMind: list_refs returns empty. TIP: list_refs(category_id, summary_mode true). Read-only.",
+                      "inputSchema":  {
+                                          "oneOf":  [
+                                                        {
+                                                            "required":  [
+                                                                             "smart_folder_id"
+                                                                         ]
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "title"
+                                                                         ]
+                                                        }
+                                                    ],
+                                          "properties":  {
+                                                             "include_criteria":  {
+                                                                                      "description":  "When true (default), returns criteria and criteria_summary.",
+                                                                                      "type":  "boolean"
+                                                                                  },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "include_ref_count":  {
+                                                                                       "description":  "When true (default), runs a live query and returns ref_count.",
+                                                                                       "type":  "boolean"
+                                                                                   },
+                                                             "title":  {
+                                                                           "description":  "Case-insensitive exact title; matches smart_leaf only, not group nodes. Mutually exclusive with smart_folder_id. Fails when multiple match.",
+                                                                           "type":  "string"
+                                                                       },
+                                                             "smart_folder_id":  {
+                                                                                     "description":  "Positive id from list_smart_folders (smart_leaf or group). Mutually exclusive with title.",
+                                                                                     "type":  "integer"
+                                                                                 }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_get_smart_folder"
+                  },
+                  {
+                      "description":  "USE WHEN: Bulk import from RIS, BibTeX, PubMed, or NoteExpress formatted text. INPUT: format, content OR file_path; optional target_id OR target_title (folder name). OUTPUT: imported_count, imported_refs[]. NOT FOR: Single title/doi stub (save_stub_refs); PDF file (import_pdf_ref); manual field entry (create_ref). TIP: format=pubmed is parser type, not destination folder; use target_title when user names a folder. No built-in dedupe; search_refs first. Max 1000 records, 16 MiB.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "format"
+                                                       ],
+                                          "oneOf":  [
+                                                        {
+                                                            "required":  [
+                                                                             "content"
+                                                                         ]
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "file_path"
+                                                                         ]
+                                                        }
+                                                    ],
+                                          "properties":  {
+                                                             "file_path":  {
+                                                                               "description":  "Absolute path to a text file readable by the NoteExpress process. Encoding is auto-detected (UTF-8 BOM / UTF-8 / system ANSI fallback). At most 1000 records per call.",
+                                                                               "type":  "string"
+                                                                           },
+                                                             "content":  {
+                                                                             "description":  "Raw formatted text. Hard cap is 16 MiB on the payload. At most 1000 records are imported per call; split larger inputs.",
+                                                                             "type":  "string"
+                                                                         },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "format":  {
+                                                                            "description":  "Reference text format (parser), not the destination folder. Maps to NE bundled filters Filters/\u003cName\u003e.nef: noteexpress -\u003e NoteExpress, ris -\u003e RefMan - (RIS), bibtex -\u003e BibTeX, pubmed -\u003e PubMed.",
+                                                                            "type":  "string",
+                                                                            "enum":  [
+                                                                                         "noteexpress",
+                                                                                         "ris",
+                                                                                         "bibtex",
+                                                                                         "pubmed"
+                                                                                     ]
+                                                                        },
+                                                             "target_id":  {
+                                                                               "description":  "Destination folder ID under the references (ctRef) tree. Omit or 0 to import into the references root (-3). You may pass -3 explicitly; any other negative value is rejected. Mutually exclusive with target_title.",
+                                                                               "type":  "integer"
+                                                                           },
+                                                             "target_title":  {
+                                                                                  "description":  "Destination folder display title under the references (ctRef) tree only (case-insensitive exact match). Does not match notes or other category types. Mutually exclusive with target_id. When multiple ctRef folders share the title, the call fails; use target_id or list_categories (get_category_tree via bridge). Omit both target_id and target_title to import into references root (-3). Must not be empty or whitespace-only.",
+                                                                                  "type":  "string"
+                                                                              }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_import_formatted_refs"
+                  },
+                  {
+                      "description":  "USE WHEN: Creating a NEW reference from a local PDF file. INPUT: file_path (absolute .pdf on NE machine); optional doi, target_id, on_duplicate. OUTPUT: success, id (reference DB int - NOT attachment_id), uid, attachment_path (not full record). NOT FOR: Attaching PDF to existing ref (attach_file). TIP: Call get_ref after import for full metadata and attachments[].id before PDF extract.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "file_path"
+                                                       ],
+                                          "properties":  {
+                                                             "rename_to":  {
+                                                                               "description":  "Required only when on_duplicate is \"rename\". New PDF file name. If the extension is omitted, .pdf is appended. Must not include a path.",
+                                                                               "type":  "string"
+                                                                           },
+                                                             "doi":  {
+                                                                         "description":  "Optional. DOI to write into the new reference\u0027s DOI field (internal key _doi). Pass the bare identifier; no \"doi:\" prefix needed.",
+                                                                         "type":  "string"
+                                                                     },
+                                                             "file_path":  {
+                                                                               "description":  "Absolute path of the source PDF on the machine running NoteExpress, e.g. \"D:/Inbox/paper.pdf\". Extension must be .pdf. Required.",
+                                                                               "type":  "string"
+                                                                           },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "on_duplicate":  {
+                                                                                  "description":  "Behavior when the library\u0027s attachment folder already contains a PDF with the same name. All three modes suppress the UI prompt. use_existing (default) reuses the existing file. overwrite replaces it. rename writes a new file under a new name (rename_to is then required).",
+                                                                                  "type":  "string",
+                                                                                  "enum":  [
+                                                                                               "use_existing",
+                                                                                               "overwrite",
+                                                                                               "rename"
+                                                                                           ]
+                                                                              },
+                                                             "target_id":  {
+                                                                               "description":  "Destination folder ID. Omit or 0 to import into the references root (-3). You may pass -3 explicitly; any other negative value is rejected.",
+                                                                               "type":  "integer"
+                                                                           }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_import_pdf_ref"
+                  },
+                  {
+                      "description":  "USE WHEN: Copying references into another folder without removing existing links. INPUT: uids[], to_category_id (must resolve to ctRef reference folder; smart-folder ids rejected). OUTPUT: linked_count. NOT FOR: Moving out of source folder (use move_refs). Same as UI Add to folder. Any blocked uid fails whole batch with blocked_uids.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uids",
+                                                           "to_category_id"
+                                                       ],
+                                          "properties":  {
+                                                             "to_category_id":  {
+                                                                                    "description":  "Destination folder ID. Must be non-negative or -3 (references root). Must resolve to a ctRef reference folder under the references tree; smart-folder ids are rejected. Existing folder memberships are preserved; this is equivalent to \"add to folder\" in the UI.",
+                                                                                    "type":  "integer"
+                                                                                },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "uids":  {
+                                                                          "items":  {
+                                                                                        "type":  "string"
+                                                                                    },
+                                                                          "description":  "Reference GUIDs to link. At least one entry required.",
+                                                                          "type":  "array"
+                                                                      }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_link_refs"
+                  },
+                  {
+                      "description":  "Lists attachments for one reference (same shape as get_ref attachments[]). item_type=file: id, file_path, optional file_ext (lowercase suffix, omitted if none); no url. item_type=directory: id; no url. item_type=url: web link with url field (no id; from reference _url list). Use file attachments[].id with extract_pdf_text or remove_attach (never parent reference id).",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uid"
+                                                       ],
+                                          "properties":  {
+                                                             "uid":  {
+                                                                         "description":  "Reference GUID. Required.",
+                                                                         "type":  "string"
+                                                                     },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_list_attaches"
+                  },
+                  {
+                      "description":  "Returns the references (ctRef) folder tree of the active (or specified) library as a nested structure, including the reference count for each folder. Built-in folders such as the references root (-3) and the trash are included. Does not include the smart-directory tree (-8); use list_smart_folders for smart folders.",
+                      "inputSchema":  {
+                                          "properties":  {
+                                                             "max_depth":  {
+                                                                               "description":  "Maximum recursion depth. Omit for unlimited (-1). 0 returns only the root node without children.",
+                                                                               "type":  "integer"
+                                                                           },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "root":  {
+                                                                          "description":  "Folder ID to use as the tree root. Omit or 0 to start at the references root (-3, the top-level \"References\" container). You may pass -3 explicitly; any other negative value is rejected.",
+                                                                          "type":  "integer"
+                                                                      }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_list_categories"
+                  },
+                  {
+                      "description":  "Lists every library that is currently open in NoteExpress (library_id, file path, active flag, ref_count). ref_count is the unique whole-library reference total (all folders). Pass library_id to activate a specific open library before returning.",
+                      "inputSchema":  {
+                                          "properties":  {
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces, e.g. \"A1B2C3D4E5F6\". When supplied, NE activates that library before returning the list.",
+                                                                                "type":  "string"
+                                                                            }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_list_libraries"
+                  },
+                  {
+                      "description":  "USE WHEN: Browsing a folder with no search filters (regular ctRef folders or smart_leaf virtual folders). INPUT: category_id (omit/0/-3 = references root; positive = ctRef folder or smart_leaf id from list_smart_folders; node_kind=group ids return empty items[]/total 0 - use smart_leaf child ids). Discover regular ids via list_categories; smart ids via list_smart_folders (not list_categories). Optional recursive (prefer false for smart_leaf), summary_mode, page, page_size (default 20, max 500). OUTPUT: items[], total. NOT FOR: Filtered search (use search_refs). Without summary_mode (default false) each item is a full record (fields{}, main_fields_only default true); summary_mode true returns compact rows. Row id is reference DB int - NEVER attachment_id (PDF needs get_ref attachments[].id). TIP: get_ref for one record detail.",
+                      "inputSchema":  {
+                                          "properties":  {
+                                                             "order":  {
+                                                                           "description":  "Sort direction. Default: desc.",
+                                                                           "type":  "string",
+                                                                           "enum":  [
+                                                                                        "asc",
+                                                                                        "desc"
+                                                                                    ]
+                                                                       },
+                                                             "main_fields_only":  {
+                                                                                      "description":  "Default true. When false (full record, not summary_mode), fields{} uses template display Titles (sparse). Star/Priority/Read always shown. When true, only Main Fields; auto-fallback sets main_fields_fallback=true and main_fields_only=false. Ignored when summary_mode is true.",
+                                                                                      "type":  "boolean"
+                                                                                  },
+                                                             "order_by":  {
+                                                                              "description":  "Sort field. Default: modified.",
+                                                                              "type":  "string",
+                                                                              "enum":  [
+                                                                                           "created",
+                                                                                           "modified",
+                                                                                           "year",
+                                                                                           "title"
+                                                                                       ]
+                                                                          },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "recursive":  {
+                                                                               "description":  "Include items from descendant folders. Default: false (only the specified folder).",
+                                                                               "type":  "boolean"
+                                                                           },
+                                                             "page":  {
+                                                                          "description":  "1-based page number. Default 1.",
+                                                                          "type":  "integer"
+                                                                      },
+                                                             "category_id":  {
+                                                                                 "description":  "Folder ID under references root (-3), or a smart_leaf id from list_smart_folders. Omit or 0 to list from the references root (-3). You may pass -3 explicitly; any other negative value is rejected. node_kind=group ids return empty items (use smart_leaf child ids).",
+                                                                                 "type":  "integer"
+                                                                             },
+                                                             "page_size":  {
+                                                                               "description":  "Items per page. Default 20, maximum 500.",
+                                                                               "type":  "integer"
+                                                                           },
+                                                             "summary_mode":  {
+                                                                                  "description":  "If true, each item returns only uid, id, title, author, year, and _doi. id is the reference DB integer (same as get_ref.id), NEVER attachment_id. Default false. Use get_ref for attachments[].id and full detail.",
+                                                                                  "type":  "boolean"
+                                                                              }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_list_refs"
+                  },
+                  {
+                      "description":  "USE WHEN: Discovering smart folders (virtual query-based folders under root -8). INPUT: optional library_id, max_depth, include_criteria (default true), include_ref_count (default false). OUTPUT: root_id, tree[] with id, title, node_kind (group|smart_leaf), is_container, result_type, criteria_summary. node_kind group = organizational folder under smart-directory tree (no filter rules); smart_leaf = query folder. NOT FOR: Regular reference folders (use list_categories). TIP: list_refs only on smart_leaf ids. Read-only.",
+                      "inputSchema":  {
+                                          "properties":  {
+                                                             "include_criteria":  {
+                                                                                      "description":  "When true (default), each leaf smart folder includes criteria and criteria_summary parsed from its saved filter rules.",
+                                                                                      "type":  "boolean"
+                                                                                  },
+                                                             "max_depth":  {
+                                                                               "description":  "Maximum recursion depth under smart-folder root (-8). Omit for unlimited (-1). 0 returns an empty tree array (root container only).",
+                                                                               "type":  "integer"
+                                                                           },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "include_ref_count":  {
+                                                                                       "description":  "When true, each leaf runs a live query to count matching items (O(n) per folder; default false).",
+                                                                                       "type":  "boolean"
+                                                                                   }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_list_smart_folders"
+                  },
+                  {
+                      "description":  "USE WHEN: Moving references out of one folder into another (same library). INPUT: uids[], from_category_id, to_category_id (both required; -3 = root; must resolve to ctRef folders; smart-folder ids rejected). OUTPUT: moved_count. NOT FOR: Keeping source folder link (use link_refs). Any blocked uid fails whole batch with blocked_uids.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uids",
+                                                           "from_category_id",
+                                                           "to_category_id"
+                                                       ],
+                                          "properties":  {
+                                                             "to_category_id":  {
+                                                                                    "description":  "Destination folder ID. Must be non-negative or -3 (references root). Must resolve to a ctRef reference folder under the references tree; smart-folder ids are rejected. Any other negative value is rejected.",
+                                                                                    "type":  "integer"
+                                                                                },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "uids":  {
+                                                                          "items":  {
+                                                                                        "type":  "string"
+                                                                                    },
+                                                                          "description":  "Reference GUIDs to move. At least one entry required.",
+                                                                          "type":  "array"
+                                                                      },
+                                                             "from_category_id":  {
+                                                                                      "description":  "Source folder ID. Must be non-negative or -3 (references root). Must resolve to a ctRef reference folder under the references tree; smart-folder ids are rejected. Any other negative value is rejected.",
+                                                                                      "type":  "integer"
+                                                                                  }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_move_refs"
+                  },
+                  {
+                      "description":  "Opens a .ndb or .nel library file in NoteExpress and loads it into the process. Does NOT switch the currently active/working library. Returns the new library_id. The file path must be reachable from the NoteExpress process; this tool does not transfer file contents.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "library_path"
+                                                       ],
+                                          "properties":  {
+                                                             "library_path":  {
+                                                                                  "description":  "Absolute file system path to a NoteExpress library, ending in .ndb or .nel, e.g. \"D:/Refs/MyLibrary.ndb\". Must exist on the machine that runs NoteExpress.",
+                                                                                  "type":  "string"
+                                                                              }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_open_library"
+                  },
+                  {
+                      "description":  "Lightweight liveness probe. Returns {ok:true, pong:\"NoteExpress-MCP\", timestamp:\"YYYY-MM-DDTHH:MM:SS\"}. Does not touch the database or activate any library.",
+                      "inputSchema":  {
+                                          "properties":  {
+
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_ping"
+                  },
+                  {
+                      "description":  "Removes one file or directory attachment from a reference by attachment_id (ONLY attachments[].id; NEVER reference top-level id or notes[].id). Does not remove item_type=url web links (those have no id). The attachment must belong to the given reference uid.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uid",
+                                                           "attachment_id"
+                                                       ],
+                                          "properties":  {
+                                                             "uid":  {
+                                                                         "description":  "Reference GUID string (not the integer id). Required.",
+                                                                         "type":  "string"
+                                                                     },
+                                                             "attachment_id":  {
+                                                                                   "description":  "ONLY attachments[].id from list_attaches or get_ref (file/dir). NEVER the reference top-level id or notes[].id. Required.",
+                                                                                   "type":  "integer"
+                                                                               },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_remove_attach"
+                  },
+                  {
+                      "description":  "USE WHEN: You only have title and/or DOI and want NE to fetch metadata online (SmartUpdate). INPUT: refs[] (title and/or doi per item, batch OK), optional target_id. OUTPUT: saved_refs[] (full v2 records), saved_count (may be 0 if every item lacked title and doi). NOT FOR: Full manual fields (create_ref); RIS/BibTeX (import_formatted_refs); PDF (import_pdf_ref). SIDE EFFECT: Queues SmartUpdate (online fetch needs signed-in NE account; without login metadata may stay thin - use smart_update_refs which errors clearly if not logged in); selects first item in NE UI. Replaces former save_refs. Other uids remain writable while one uid is smart updating.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "refs"
+                                                       ],
+                                          "properties":  {
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "refs":  {
+                                                                          "oneOf":  [
+                                                                                        {
+                                                                                            "items":  {
+                                                                                                          "properties":  {
+                                                                                                                             "doi":  {
+                                                                                                                                         "description":  "Reference DOI (bare identifier; no \"doi:\" prefix needed).",
+                                                                                                                                         "type":  "string"
+                                                                                                                                     },
+                                                                                                                             "template":  {
+                                                                                                                                              "description":  "Optional reference type name (e.g. Journal Article). Defaults to Journal Article when omitted.",
+                                                                                                                                              "type":  "string"
+                                                                                                                                          },
+                                                                                                                             "title":  {
+                                                                                                                                           "description":  "Reference title.",
+                                                                                                                                           "type":  "string"
+                                                                                                                                       }
+                                                                                                                         },
+                                                                                                          "type":  "object",
+                                                                                                          "anyOf":  [
+                                                                                                                        {
+                                                                                                                            "required":  [
+                                                                                                                                             "title"
+                                                                                                                                         ]
+                                                                                                                        },
+                                                                                                                        {
+                                                                                                                            "required":  [
+                                                                                                                                             "doi"
+                                                                                                                                         ]
+                                                                                                                        }
+                                                                                                                    ]
+                                                                                                      },
+                                                                                            "type":  "array"
+                                                                                        },
+                                                                                        {
+                                                                                            "type":  "string"
+                                                                                        }
+                                                                                    ],
+                                                                          "description":  "Either a JSON array of reference objects (recommended; each item is an object with at least one of \"title\" or \"doi\") or a legacy WeCite string blob (single-string form, kept for backwards compatibility). Content and length are validated by the server."
+                                                                      },
+                                                             "target_id":  {
+                                                                               "description":  "Destination folder ID. Omit or 0 to save under the references root (-3). You may pass -3 explicitly; any other negative value is rejected.",
+                                                                               "type":  "integer"
+                                                                           }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_save_stub_refs"
+                  },
+                  {
+                      "description":  "USE WHEN: Finding references by title, author, doi, year, tags, or keyword. INPUT: at least one filter (required); optional category_id (ctRef folders only; for smart folders use list_refs on smart_leaf), recursive (default true; list_refs defaults false), summary_mode, page, page_size (default 20, max 500). OUTPUT: items[], total. NOT FOR: Folder browse without filters (use list_refs). Does not search note bodies. Without summary_mode (default false) each hit is a full record (fields{}); summary_mode true for compact rows. Row id is reference DB int - NEVER attachment_id. TIP: get_ref for detail/PDF. Example: {\"author\":\"Brewer\",\"year\":2011,\"summary_mode\":true}.",
+                      "inputSchema":  {
+                                          "properties":  {
+                                                             "order":  {
+                                                                           "description":  "Sort direction. Default: desc.",
+                                                                           "type":  "string",
+                                                                           "enum":  [
+                                                                                        "asc",
+                                                                                        "desc"
+                                                                                    ]
+                                                                       },
+                                                             "doi":  {
+                                                                         "description":  "Substring match on DOI, case-insensitive.",
+                                                                         "type":  "string"
+                                                                     },
+                                                             "main_fields_only":  {
+                                                                                      "description":  "Default true. When false (full record, not summary_mode), fields{} uses template display Titles (sparse). Star/Priority/Read always shown. When true, only Main Fields; auto-fallback sets main_fields_fallback=true and main_fields_only=false. Ignored when summary_mode is true.",
+                                                                                      "type":  "boolean"
+                                                                                  },
+                                                             "order_by":  {
+                                                                              "description":  "Sort field. Default: modified.",
+                                                                              "type":  "string",
+                                                                              "enum":  [
+                                                                                           "created",
+                                                                                           "modified",
+                                                                                           "year",
+                                                                                           "title"
+                                                                                       ]
+                                                                          },
+                                                             "keyword":  {
+                                                                             "oneOf":  [
+                                                                                           {
+                                                                                               "type":  "string"
+                                                                                           },
+                                                                                           {
+                                                                                               "items":  {
+                                                                                                             "type":  "string"
+                                                                                                         },
+                                                                                               "type":  "array"
+                                                                                           }
+                                                                                       ],
+                                                                             "description":  "Free-text filter. Either a single string or an array. When an array is supplied, the reference matches if any item is found in title, author, DOI, or tags (case-insensitive, OR)."
+                                                                         },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "title":  {
+                                                                           "description":  "Substring match on title, case-insensitive.",
+                                                                           "type":  "string"
+                                                                       },
+                                                             "recursive":  {
+                                                                               "description":  "Search descendant folders. Default: true.",
+                                                                               "type":  "boolean"
+                                                                           },
+                                                             "year":  {
+                                                                          "description":  "Exact year match.",
+                                                                          "type":  "integer"
+                                                                      },
+                                                             "tags":  {
+                                                                          "oneOf":  [
+                                                                                        {
+                                                                                            "type":  "string"
+                                                                                        },
+                                                                                        {
+                                                                                            "items":  {
+                                                                                                          "type":  "string"
+                                                                                                      },
+                                                                                            "type":  "array"
+                                                                                        }
+                                                                                    ],
+                                                                          "description":  "Tag filter. Either a single string or an array. When an array is supplied, every item must appear in the reference\u0027s keywords (case-sensitive, AND)."
+                                                                      },
+                                                             "page":  {
+                                                                          "description":  "1-based page number. Default 1.",
+                                                                          "type":  "integer"
+                                                                      },
+                                                             "category_id":  {
+                                                                                 "description":  "Starting ctRef folder ID (not smart_leaf/group). Omit or 0 to start at the references root (-3). You may pass -3 explicitly; any other negative value is rejected. For smart folders use list_refs on a smart_leaf id.",
+                                                                                 "type":  "integer"
+                                                                             },
+                                                             "page_size":  {
+                                                                               "description":  "Items per page. Default 20, maximum 500.",
+                                                                               "type":  "integer"
+                                                                           },
+                                                             "author":  {
+                                                                            "description":  "Substring match on author, case-insensitive.",
+                                                                            "type":  "string"
+                                                                        },
+                                                             "summary_mode":  {
+                                                                                  "description":  "If true, each item returns only uid, id, title, author, year, and _doi. id is the reference DB integer (same as get_ref.id), NEVER attachment_id. Default false. Use get_ref for attachments[].id and full detail.",
+                                                                                  "type":  "boolean"
+                                                                              }
+                                                         },
+                                          "description":  "References-only search (note bodies are NOT included). At least one of title, author, doi, year, tags, keyword MUST be provided (enforced by anyOf above and re-checked server-side). Fields combine with AND; tags-array uses AND; keyword-array uses OR. Each returned item is full unless summary_mode is true (compact uid/title/year/_doi). Note bodies are not searched.",
+                                          "type":  "object",
+                                          "anyOf":  [
+                                                        {
+                                                            "required":  [
+                                                                             "title"
+                                                                         ]
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "author"
+                                                                         ]
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "doi"
+                                                                         ]
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "year"
+                                                                         ]
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "tags"
+                                                                         ]
+                                                        },
+                                                        {
+                                                            "required":  [
+                                                                             "keyword"
+                                                                         ]
+                                                        }
+                                                    ]
+                                      },
+                      "name":  "noteexpress_search_refs"
+                  },
+                  {
+                      "description":  "USE WHEN: Refreshing online metadata on EXISTING references. INPUT: uids[] (1-100); optional wait_for_update, update_timeout_ms. OUTPUT: triggered_count, results[]. NOT FOR: New references (save_stub_refs already queues SmartUpdate). May require NE login. Async by default.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "uids"
+                                                       ],
+                                          "properties":  {
+                                                             "wait_for_update":  {
+                                                                                     "description":  "If true, block until SmartUpdate finishes or update_timeout_ms elapses. Default false (async).",
+                                                                                     "type":  "boolean"
+                                                                                 },
+                                                             "update_timeout_ms":  {
+                                                                                       "description":  "Used when wait_for_update is true. Default 30000.",
+                                                                                       "type":  "integer"
+                                                                                   },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "uids":  {
+                                                                          "items":  {
+                                                                                        "type":  "string"
+                                                                                    },
+                                                                          "description":  "Existing reference GUIDs (1-100). Required.",
+                                                                          "type":  "array"
+                                                                      }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_smart_update_refs"
+                  },
+                  {
+                      "description":  "Renames a user folder (category_id + title). Does not change parent_id. Built-in and virtual folders are rejected.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "category_id",
+                                                           "title"
+                                                       ],
+                                          "properties":  {
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            },
+                                                             "title":  {
+                                                                           "description":  "New folder title. Required.",
+                                                                           "type":  "string"
+                                                                       },
+                                                             "category_id":  {
+                                                                                 "description":  "Folder id to rename. Must not be a built-in or virtual folder.",
+                                                                                 "type":  "integer"
+                                                                             }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_update_category"
+                  },
+                  {
+                      "description":  "USE WHEN: Editing fields on an EXISTING reference (no SmartUpdate). WORKFLOW: action=list_editable(uid), then action=update with Title keys from editable_fields. INPUT: uid, fields{}, optional main_fields_only (default true), dry_run. OUTPUT: full record or validated=true. NOT FOR: New references (save_stub_refs/create_ref). TIP: Star 0|1; Priority index; read_only_titles. SIDE EFFECT: Jumps NE UI. Per-uid guard on update: smart updating or open in editor.",
+                      "inputSchema":  {
+                                          "required":  [
+                                                           "action",
+                                                           "uid"
+                                                       ],
+                                          "properties":  {
+                                                             "action":  {
+                                                                            "description":  "list_editable returns agent-editable fields for one uid (title, type, optional allowed_values/allowed_labels/hint/suggestions) plus read_only_titles. update applies a Title-keyed patch using titles from list_editable.",
+                                                                            "type":  "string",
+                                                                            "enum":  [
+                                                                                         "list_editable",
+                                                                                         "update"
+                                                                                     ]
+                                                                        },
+                                                             "dry_run":  {
+                                                                             "description":  "For action=update only. If true, validate only (validated=true); does not save or return a patched full record.",
+                                                                             "type":  "boolean"
+                                                                         },
+                                                             "uid":  {
+                                                                         "description":  "Reference GUID. Required.",
+                                                                         "type":  "string"
+                                                                     },
+                                                             "fields":  {
+                                                                            "description":  "For action=update only. Partial map keyed by field display Title from list_editable (e.g. Author, DOI, Keywords). Case-insensitive.",
+                                                                            "type":  "object"
+                                                                        },
+                                                             "main_fields_only":  {
+                                                                                      "description":  "Default true. When true, list/update only Main Fields (Author, Title, DOI, etc.). Set false for all agent-editable fields outside Main Fields (excludes impact factor, system timestamps, custom fields). When list_editable auto-fallbacks (no Main Fields template), response main_fields_only is false.",
+                                                                                      "type":  "boolean"
+                                                                                  },
+                                                             "library_id":  {
+                                                                                "description":  "Optional. Database UID of an already-opened library, without braces. Defaults to the active library.",
+                                                                                "type":  "string"
+                                                                            }
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_update_ref"
+                  },
+                  {
+                      "description":  "Returns the NoteExpress application version, build number, MCP protocol version, and a feature list (tool names registered in tools/list). Use this for client-side capability negotiation.",
+                      "inputSchema":  {
+                                          "properties":  {
+
+                                                         },
+                                          "type":  "object"
+                                      },
+                      "name":  "noteexpress_version"
+                  }
+              ],
+    "noteexpress_version_probe":  {
+                                      "status":  "TOOLS_CALL_RESPONSE",
+                                      "detail":  "This validates only this noteexpress_version call. Its returned value is not assumed to be an MCP protocol revision.",
+                                      "raw_response":  "{\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"app_build\\\":10931,\\\"mcp_protocol\\\":\\\"2025-06-18\\\",\\\"server\\\":\\\"NoteExpress-MCP\\\",\\\"app_version\\\":\\\"4.4.0.10931\\\",\\\"features\\\":[\\\"noteexpress_attach_file\\\",\\\"noteexpress_create_category\\\",\\\"noteexpress_create_ref\\\",\\\"noteexpress_dedupe_refs\\\",\\\"noteexpress_delete_category\\\",\\\"noteexpress_delete_refs\\\",\\\"noteexpress_export_refs\\\",\\\"noteexpress_extract_pdf_text\\\",\\\"noteexpress_get_note\\\",\\\"noteexpress_get_ref\\\",\\\"noteexpress_get_server_status\\\",\\\"noteexpress_get_smart_folder\\\",\\\"noteexpress_import_formatted_refs\\\",\\\"noteexpress_import_pdf_ref\\\",\\\"noteexpress_link_refs\\\",\\\"noteexpress_list_attaches\\\",\\\"noteexpress_list_categories\\\",\\\"noteexpress_list_libraries\\\",\\\"noteexpress_list_refs\\\",\\\"noteexpress_list_smart_folders\\\",\\\"noteexpress_move_refs\\\",\\\"noteexpress_open_library\\\",\\\"noteexpress_ping\\\",\\\"noteexpress_remove_attach\\\",\\\"noteexpress_save_stub_refs\\\",\\\"noteexpress_search_refs\\\",\\\"noteexpress_smart_update_refs\\\",\\\"noteexpress_update_category\\\",\\\"noteexpress_update_ref\\\",\\\"noteexpress_version\\\"],\\\"app_name\\\":\\\"NoteExpress\\\",\\\"server_version\\\":\\\"1.0.0\\\"}\"}]},\"id\":1001,\"jsonrpc\":\"2.0\"}"
+                                  }
+}
